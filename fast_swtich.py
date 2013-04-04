@@ -1,5 +1,11 @@
+from __future__ import print_function
 import sublime, sublime_plugin
 import os.path
+import sys
+
+# xrange is the default in python > 3
+if sys.version_info < (3,):
+    range = xrange
 
 version = "0.1"
 settings = {}
@@ -21,11 +27,11 @@ def log(verbosity, msg):
 
   if settings.get("verbosity", -1) > verbosity:
     global version
-    print "FastSwitch %s: %s" % (version, msg)
+    print("FastSwitch %s: %s" % (version, msg))
 
 
 def with_index(seq):
-    for i in xrange(len(seq)):
+    for i in range(len(seq)):
         yield i, seq[i]
 
 def replace_all(seq, obj, replacement):

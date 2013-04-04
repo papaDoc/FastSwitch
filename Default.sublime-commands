@@ -1,0 +1,6 @@
+[
+    {
+        "caption": "FastSwitch: Goto Corresponding file",
+        "command": "fast_switch"
+    }
+]

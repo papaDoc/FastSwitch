@@ -15,7 +15,7 @@
              [ ["cpp"], ["src"] ],
              [ ["h", "hpp"], [".", "include"] ]
            ],
-    // As the value of the Verbosity increase more messages will be printer
+    // As the value of the Verbosity increase more messages will be printed
     // -1: Nothing logged
     //  0: Error messages are printed
     //  1: Can tell you why no switch occured

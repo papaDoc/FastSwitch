@@ -3,10 +3,6 @@ import sublime, sublime_plugin
 import os.path
 import sys
 
-# xrange is the default in python > 3
-if sys.version_info < (3,):
-    range = xrange
-
 version = "0.1"
 settings = {}
 

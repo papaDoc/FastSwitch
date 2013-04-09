@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sublime, sublime_plugin
 import os.path
+import re
 import sys
 
 version = "0.1"
@@ -34,6 +35,41 @@ def replace_all(seq, obj, replacement):
     for i, elem in with_index(seq):
         if elem == obj:
             seq[i] = replacement
+
+
+def replace_current_directory(seq, replacement):
+  '''
+    Replace all single dot by replacement
+    Ex: "."       => "src"
+        "@-1/."   => "@-1/src"
+        "../tata" => "../tata"
+  '''
+  pattern = "(?<!\.)(\.)(?!\.)"
+  s = "."
+  for i, elem in with_index(seq):
+      seq[i] = re.sub(pattern, replacement, elem)
+
+
+def replace_index(seq, replacement):
+  '''
+    Replacement is the splitted path of the file in view
+  '''
+  log(1, "replace_index: seq: [%s] replacement: [%s]" % (seq, replacement))
+  nb = len(replacement)
+  for i, elem in with_index(seq):
+    log(1, "replace_index: i: [%d] elem: [%s]" % (i, elem))
+    if '@' in elem:
+      log(1, "replace_index: There is a \"@\" in elem: [%s]" % elem)
+      m = re.search('(?<=@)-?[0-9]+', elem)
+      if m:
+        log(1, "replace_index: The match: [%s] Found a groups: %s" % (m, m.group(0)) )
+        idx = int(m.group(0))
+        log(1, "replace_index: nb: %d  idx: %d" % (nb, idx) )
+        if idx > -nb and idx < nb:
+          log(1, "replace_index: replace with %s" % replacement[idx])
+        for g in m.groups():
+          log(1, "replace_index: group: [%s]" % g)
+
 
 
 
@@ -93,6 +129,14 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
     splitted_base, last_dir = os.path.split(base)
     log(0, "Splitted base: %s   last dir: %s" % (splitted_base, last_dir))
 
+    dirs = []
+    head = splitted_base
+    while head:
+      (head, tail) = os.path.split(head)
+      dirs += tail
+
+    log(0, "The component of the path: %s", dirs)
+
     idx = (idx+1)%2;
     wife_ext = ext_dir[idx][0]
     wife_dir = ext_dir[idx][1]
@@ -102,9 +146,11 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
 
     # If the list of directory has the current directory as an entry to seach
     # replace the "." by the current directory
-    replace_all(wife_dir, ".", last_dir)
+    replace_current_directory(wife_dir, last_dir)
     log(50, "Replacing \".\" by \"%s\" if in the list" % last_dir)
     log(50, "Looking for file [%s] with one of the following extension [%s] in one of the directory [%s]." % (name, wife_ext, wife_dir))
+    replace_index(wife_dir, ["tata", "tete", "titi"])
+    log(50, "After replacing the index: Looking for file [%s] with one of the following extension [%s] in one of the directory [%s]." % (name, wife_ext, wife_dir))
 
 
     for d in wife_dir:
@@ -139,6 +185,16 @@ if __name__ == "__main__":
 #             [ ["h", "hpp"], [".", "include"] ]
 #           ]
 # ls ./src => tata.cpp, tata.hpp
+# ./src/tata.cpp should switch to ./src/tata.hpp
+# ./src/tata.hpp should switch to ./src/tata.cpp
+
+# Test 3
+#  "C++": [
+#             [ [".cpp"], ["src"] ],
+#             [ ["h", "hpp"], [".", "include", "@-2/."] ]
+#           ]
+#  ls .../foo/src/bar => titi.cpp
+#  ls .../foo/include/foo/bar => titi.h
 # ./src/tata.cpp should switch to ./src/tata.hpp
 # ./src/tata.hpp should switch to ./src/tata.cpp
 

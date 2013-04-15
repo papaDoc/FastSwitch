@@ -34,7 +34,7 @@ Here is an example of a setting:
 With the above settings when in C++  
 If you are currently in the file:
   * .../foo/bar/src/file.cpp  
-using the fastswitch pluging, the pluging will try to open the file:
+using the FastSwitch pluging, the pluging will try to open the file:
   * .../foo/bar/src/file.h                    # because of the "."
   * .../foo/bar/src/file.hpp                  # because of the "."
   * .../foo/bar/include/file.h
@@ -42,6 +42,79 @@ using the fastswitch pluging, the pluging will try to open the file:
 
 If you are currently in the file:
   * .../foo/bar/include/file.hpp  
-using the fastswitch pluging, the pluging will try to open the file:
+using the FastSwitch pluging, the pluging will try to open the file:
   * .../foo/bar/src/file.cpp
+
+
+The following examples are using the advance settings of the FastSwitch pluging to be able to switch between file
+where the relation between the different directory tree is more complex.
+
+For each example the setting is minimal to expose the current feature. All the settings can be combined to achieve 
+powerfull fast and versatile switch.
+
+Example 1:  
+With the following setting :  
+```
+ "C++": [  
+          [ [".cpp"], ["src"] ],  
+          [ ["hpp"], ["."] ]  
+        ]
+```  
+ or  
+```
+ "C++": [  
+          [ [".cpp"], ["."] ],  
+          [ ["hpp"], ["."] ]  
+        ]  
+```     
+and with the following directory containing the given files:  
+ls ./foo/src => tata.cpp, tata.hpp  
+when in the following file: ./foo/src/tata.cpp, you should be able to switch to ./src/tata.hpp  
+when in the following file: ./foo/src/tata.hpp should switch to ./src/tata.cpp
+
+Example 2:
+With the following setting :  
+```
+"C++": [  
+         [ [".cpp"], ["src"] ],  
+         [ [".h"], ["include"] ]  
+       ] 
+```  
+and with the following directories containing the given file:  
+ls ./foo/src => tete.cpp  
+ls ./foo/include => tete.h  
+using the FastSwitch pluging :  
+when in the following file: ./foo/src/tete.cpp it will switch to ./include/tete.hpp  
+when in the following file: ./foo/include/tete.hpp it will switch to ./src/tete.cpp  
+
+Example 3:
+With the following setting :  
+```
+"C++": [  
+         [ [".cpp"], ["../src"] ],  
+         [ [".h"], ["include/@-1"] ]  
+       ]  
+```
+and with the following directories containing the given file:  
+ls ./foo/src => titi.cpp  
+ls ./foo/include/foo => titi.h  
+when in the following file: ./foo/src/titi.cpp it will switch to ./foo/include/foo/titi.hpp  
+when in the following file: ./foo/include/foo/titi.hpp it will switch to ./foo/src/titi.cpp  
+
+Example 4:  
+With the following setting :  
+```
+"C++": [  
+         [ [".cpp"], ["../../src/."] ],  
+         [ [".h"], ["../include/@-2/."] ]  
+       ]
+```
+and with the following directories containing the given file:  
+ls ./foo/src/bar => toto.cpp  
+ls ./foo/include/foo/bar/ => toto.h  
+when in the following file: ./foo/src/bar/toto.cpp it will switch to ./foo/include/foo/bar/toto.hpp  
+when in the following file: ./foo/include/foo/bar/toto.hpp it will switch to ./foo/src/bar/toto.cpp
+
+
+
 

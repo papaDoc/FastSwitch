@@ -83,9 +83,9 @@ def replace_index(orig, replacements):
       log(50, "replace_index: The match: [%s] Found a groups: %s" % (m, m.group(0)) )
       idx = int(m.group(0))
       log(50, "replace_index: nb: %d  idx: %d" % (nb, idx) )
-      if idx > -nb:
+      if idx > -nb and idx < 0:
         log(INFO, "Replacing the indicator index in [%s] by [%s]" % (orig, replacements[idx]) )
-        new_str = re.sub(pattern2, replacements[idx], orig)
+        new_str = re.sub(pattern2, replacements[idx], orig, 1)
         log(INFO, "The original string [%s] is now: [%s]" % (orig, new_str) )
         orig = new_str
     else:
@@ -171,11 +171,14 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
               log(50, "There is a \"@\" in directory \"%s\" need to split the path \"%s\" "  % (d, splitted_base) )
               dirs = []
               head = splitted_base
-              # while head:
-              for i in (0,1):
+              cnt = 0
+              tail = ""
+              while head and head != os.path.sep and cnt < 10:
+                log(50, "Head: \"%s\" tail: \"%s\" " % (head, tail) )
                 (head, tail) = os.path.split(head)
                 log(50, "Adding \"%s\" to dirs: \"%s\"" % (tail, dirs) )
                 dirs.append(tail)
+                cnt = cnt + 1
 
               dirs.reverse()
               log(50, "The component of the path: %s" % dirs)
@@ -211,26 +214,48 @@ if __name__ == "__main__":
 
 
 # Test 1
-#  src="c:\src\vortextoolkit\trunk\vortex\vxcablesystem\src\ICD\VxProducer.cpp"
-#  include="c:\src\vortextoolkit\trunk\vortex\vxcablesystem\include\VxCableSystem\ICD\VxProducer.cpp"
+#  "C++": [
+#             [ [".cpp"], ["src"] ],
+#             [ ["hpp"],  ["."] ]
+#           ]
+# or
+#  "C++": [
+#             [ [".cpp"], ["."] ],
+#             [ ["hpp"],  ["."] ]
+#           ]
+# ls ./foo/src => tata.cpp, tata.hpp
+# ./foo/src/tata.cpp should switch to ./src/tata.hpp
+# ./foo/src/tata.hpp should switch to ./src/tata.cpp
 
 # Test 2
 #  "C++": [
 #             [ [".cpp"], ["src"] ],
-#             [ ["h", "hpp"], [".", "include"] ]
+#             [ [".h"],   ["include"] ]
 #           ]
-# ls ./src => tata.cpp, tata.hpp
-# ./src/tata.cpp should switch to ./src/tata.hpp
-# ./src/tata.hpp should switch to ./src/tata.cpp
+# ls ./foo/src => tete.cpp
+# ls ./foo/include => tete.h
+# ./foo/src/tete.cpp should switch to ./include/tete.hpp
+# ./foo/include/tete.hpp should switch to ./src/tete.cpp
 
 # Test 3
 #  "C++": [
-#             [ [".cpp"], ["src"] ],
-#             [ ["h", "hpp"], [".", "include", "@-2/."] ]
+#             [ [".cpp"], ["../src"] ],
+#             [ [".h"],   ["include/@-1"] ]
 #           ]
-#  ls .../foo/src/bar => titi.cpp
-#  ls .../foo/include/foo/bar => titi.h
-# ./src/tata.cpp should switch to ./src/tata.hpp
-# ./src/tata.hpp should switch to ./src/tata.cpp
+# ls ./foo/src => titi.cpp
+# ls ./foo/include/foo => titi.h
+# ./foo/src/titi.cpp should switch to ./foo/include/foo/titi.hpp
+# ./foo/include/foo/titi.hpp should switch to ./foo/src/titi.cpp
+
+# Test 4
+#  "C++": [
+#             [ [".cpp"], ["../../src/."] ],
+#             [ [".h"],   ["../include/@-2/."] ]
+#           ]
+# ls ./foo/src/bar => toto.cpp
+# ls ./foo/include/foo/bar/ => toto.h
+# ./foo/src/bar/toto.cpp should switch to ./foo/include/foo/bar/toto.hpp
+# ./foo/include/foo/bar/toto.hpp should switch to ./foo/src/bar/toto.cpp
+
 
 

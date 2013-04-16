@@ -24,12 +24,18 @@ Here is an example of a setting:
     // foo/bar/directory_B2/file.ext_B2  
     // The first existing file will be openned so the order is important.  
     //  
+    // N.B. The "." will be replaced by the current directory
+    //      Ex: If you are currently in  c:\foo\src\bar\file.cpp the "include\." correspond to "include\bar"
+    //      The "@d" means to replace the tag by the corresponding directory in path of the current file.
+    //      d must be a negative number
+    //      Ex: If you are currently in c:\foo\bar\src\file.cpp the "@-1" correspond to the directory "bar" 
+    //
     // For the C++ syntax, I'm using the following  
-    // N.B. The "." means to look in the current directory  
-    "C++": [  
-             [ ["cpp"], ["src"] ],  
-             [ ["h", "hpp"], [".", "include"] ]  
-           ]  
+    "C++": [
+             [ [".cpp"], ["src", "../src", "../../src/."] ],
+             [ ["h", "hpp"], [".", "include", "include/@-1", "../include/@-2/."] ]
+           ],
+    "verbosity": 0
 ```
 With the above settings when in C++  
 If you are currently in the file:
@@ -116,5 +122,20 @@ when in the following file: ./foo/src/bar/toto.cpp it will switch to ./foo/inclu
 when in the following file: ./foo/include/foo/bar/toto.hpp it will switch to ./foo/src/bar/toto.cpp
 
 
+Installation
+------------
+
+1. The easiest way to install FastSwitch is via the excellent Package Control Plugin.  
+   See http://wbond.net/sublime_packages/package_control#Installation  
+   * Once package control has been installed, bring up the command palette (cmd+shift+P or ctrl+shift+P)  
+   * Type Install and select "Package Control: Install Package"  
+   * Select FastSwitch from the list. Package Control will keep it automatically updated for you  
+2. If you don't want to use package control, you can manually install it  
+   * Go to your packages directory and type:  
+   ```git clone --recursive https://github.com/papaDoc/FastSwitch FastSwitch ```
+   * To update run the following command:  
+   ```git pull && git submodule foreach --recursive git pull origin master```
+   * Back in the editor, open up the command palette by pressing cmd+shift+P or ctrl+shift+P
+   Type FastSwitch and open up the settings file you want to modify
 
 

@@ -102,7 +102,6 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
     global settings
     # Set user options
     assign_settings()
-    print(" Verbosity: Settings: %d" % settings.get("verbosity"))
 
     log(WARNING, "Settings: all: %s" % settings)
 
@@ -128,27 +127,19 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
     base, filename =os.path.split(path)
     log(50, "Base: %s, filename: %s" % (base, filename))
 
-    name, ext = os.path.splitext(filename)
-    log(50, "Name: %s, ext: %s" % (name, ext))
-
-
     # Start working on finding the wife of the current file
     # - No work is done in advance everything is done when needed
 
     # Find in which of the two list the current extension belongs
     for i in (0,1):
       for j, e in with_index(ext_dir[i][0]): # Index 0 for the extension
-        # add '.' if needed
-        log(50, "The first char of \"%s\": %s " % (e, e[0]) )
-        if e[0] != '.':
-          log(50, "Adding a \".\" for extension: %s" % e)
-          ext_dir[i][0][j] = '.' + e   # Do the replacement since the husband might be in the second list
-        log(50, "Checking if \"%s\" equal \"%s\" "% (ext, ext_dir[i][0][j]) )
-        if ext == ext_dir[i][0][j]:
-          log(50, "\"%s\" is equal to \"%s\" "% (ext, ext_dir[i][0][j]) )
+        log(50, "Checking if file \"%s\" has extension \"%s\" "% (filename, ext_dir[i][0][j]) )
+        if filename.endswith(ext_dir[i][0][j]):
+          log(50, "\"%s\" has extension \"%s\" "% (filename, ext_dir[i][0][j]) )
           wife_idx = (i+1)%2;
           wife_ext = ext_dir[wife_idx][0]
           wife_dir = ext_dir[wife_idx][1]
+          name =  re.sub(re.escape(ext_dir[i][0][j]) + '$', '', filename)
 
           # Split the base since the current directory might be needed
           # and because every is with respect to the base - last_dir
@@ -189,11 +180,6 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
             log(50, "The investigation directory with everything replaced: \"%s\"" % d)
             for wife_i, wife_e in with_index(wife_ext):
               log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\"" % (name, os.path.join(splitted_base, d), wife_e) )
-              # add '.' if needed
-              if wife_e[0] != '.':
-                log(50, "Adding a \".\" for the wife extension: %s" % wife_e)
-                wife_ext[wife_i] = '.' + wife_e
-
               wife = os.path.join(splitted_base, d, name + wife_ext[wife_i])
               log(INFO, "Looking for wife file: %s" % wife)
               if os.path.isfile(wife):
@@ -202,7 +188,7 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
                 return
 
     else:
-      log(INFO, "The file extension [%s] not found in the list %s, %s for the syntax [%s]." % (ext, ext_dir[0][0], ext_dir[1][0], syntax))
+      log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." % (filename, ext_dir[0][0], ext_dir[1][0], syntax))
 
 
 if __name__ == "__main__":

@@ -243,5 +243,12 @@ if __name__ == "__main__":
 # ./foo/src/bar/toto.cpp should switch to ./foo/include/foo/bar/toto.hpp
 # ./foo/include/foo/bar/toto.hpp should switch to ./foo/src/bar/toto.cpp
 
-
-
+# Test 5
+# "JavaScript": [
+#             [ [".js"], ["public/js"] ],
+#             [ ["Spec.js"], ["../test"] ]
+#           ],
+# ls ./foo/public/js => someScript.js
+# ls ./foo/test => someScriptSpec.js
+# ./foo/public/js/someScript.js should switch to ./foo/test/someScriptSpec.js
+# ./foo/test/someScriptSpec.js should switch to ./foo/public/js/someScript.js

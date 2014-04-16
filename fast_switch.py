@@ -179,13 +179,17 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
 
             log(50, "The investigation directory with everything replaced: \"%s\"" % d)
             for wife_i, wife_e in with_index(wife_ext):
-              log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\"" % (name, os.path.join(splitted_base, d), wife_e) )
-              wife = os.path.join(splitted_base, d, name + wife_ext[wife_i])
-              log(INFO, "Looking for wife file: %s" % wife)
-              if os.path.isfile(wife):
-                log(INFO, "Found a wife file: %s" % wife)
-                self.window.open_file(wife)
-                return
+              path = os.path.join(splitted_base, d)
+              log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\"" % (name, path, wife_e) )
+              extensions = [wife_e]
+              extensions.append('.' + wife_e if wife_e[0] != '.' else wife_e[1:])
+              for extension in extensions:
+                wife = os.path.join(path, name + extension)
+                log(INFO, "Looking for wife file: %s" % wife)
+                if os.path.isfile(wife):
+                  log(INFO, "Found a wife file: %s" % wife)
+                  self.window.open_file(wife)
+                  return
 
     else:
       log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." % (filename, ext_dir[0][0], ext_dir[1][0], syntax))

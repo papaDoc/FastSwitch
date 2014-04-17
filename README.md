@@ -1,10 +1,10 @@
 FastSwitch
 ==========
 
-A Sublime Text 2 plugin. To switch between files
+A Sublime Text 2/3 plugin. To switch between files
 
 A file of a given syntax will switch to a file with the same base name but with a different user defined extension. 
-The file will be searched in a list of user define directory. The first file found respecting the criteria will be the one Sublime Text 2 will switch to.
+The file will be searched in a list of user define directory. The first file found respecting the criteria will be the one Sublime Text 2/3 will switch to.
 
 Here is an example of a setting:
 ```
@@ -12,7 +12,7 @@ Here is an example of a setting:
     // "syntax_X": { ["ext_A1, ext_A2"], ["directory_A1", directory_A2] },  
     //               ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]  
     //             }
-    // N.B. The "syntax_X" must be the string found in the lower right corner if the SublimeText2  
+    // N.B. The "syntax_X" must be the string found in the lower right corner if the SublimeText 2/3  
     // Example: "Plain Text", "C++". "Python", "Markdown"  
     //   
     // With the above settings when in mode_X (Ex C++) and you are currently in the file:  

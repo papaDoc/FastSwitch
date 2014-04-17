@@ -244,7 +244,7 @@ if __name__ == "__main__":
 #           ]
 # ls ./foo/src/bar => toto.cpp
 # ls ./foo/include/foo/bar/ => toto.h
-# ./foo/src/bar/toto.cpp should switch to ./foo/include/foo/bar/toto.hpp
+# ./foo/src/bar/toto.cpp should switch to ./foo/include/foo/bar/toto.h
 # ./foo/include/foo/bar/toto.hpp should switch to ./foo/src/bar/toto.cpp
 
 # Test 5

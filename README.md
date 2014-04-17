@@ -90,7 +90,7 @@ and with the following directories containing the given file:
 ls ./foo/src => tete.cpp  
 ls ./foo/include => tete.h  
 using the FastSwitch pluging :  
-when in the following file: ./foo/src/tete.cpp it will switch to ./include/tete.hpp  
+when in the following file: ./foo/src/tete.cpp it will switch to ./include/tete.h  
 when in the following file: ./foo/include/tete.hpp it will switch to ./src/tete.cpp  
 
 Example 3:

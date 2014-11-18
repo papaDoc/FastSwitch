@@ -12,7 +12,7 @@
     // foo/bar/directory_B2/file.ext_B2
     // The first existing file will be openned so the order is important.
     "C++": [
-             [ ["cpp"], ["src"] ],
+             [ ["cpp"], [".", "src"] ],
              [ ["h", "hpp"], [".", "include"] ]
            ],
     // As the value of the Verbosity increase more messages will be printed

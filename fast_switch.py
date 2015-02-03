@@ -13,6 +13,13 @@ WARNING = 1
 INFO = 2
 
 
+def lreplace(string, pattern, sub):
+    """
+    Replaces 'pattern' in 'string' with 'sub' if 'pattern' starts 'string'.
+    """
+    return re.sub('^%s' % pattern, sub, string)
+
+
 def assign_settings():
     global settings
     settings = sublime.load_settings('FastSwitch.sublime-settings')
@@ -50,7 +57,6 @@ def replace_current_directory(orig, replacement):
 
       @return The "orig" string with single dot replaced by "replacement"
     '''
-    log(50, "replace_current_directory: orig: \"%s\" replacement: \"%s\"" % (orig, replacement))
 
     pattern = "(?<!\.)(\.)(?!\.)"
     new_orig = re.sub(pattern, replacement, orig)
@@ -129,68 +135,98 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
 
         # Find in which of the two list the current extension belongs
         for i in (0, 1):
-            for j, e in with_index(ext_dir[i][0]):  # Index 0 for the extension
-                log(50, "Checking if file \"%s\" has extension \"%s\" " % (filename, ext_dir[i][0][j]))
-                if filename.endswith(ext_dir[i][0][j]):
-                    log(50, "\"%s\" has extension \"%s\" " % (filename, ext_dir[i][0][j]))
+            for j, e in with_index(ext_dir[i][1]):  # Index 0 for the extension
+                if len(ext_dir[i]) == 2:
+                    cur_ext = ext_dir[i][0][j]
                     wife_idx = (i + 1) % 2
-                    wife_ext = ext_dir[wife_idx][0]
-                    wife_dir = ext_dir[wife_idx][1]
-                    name = re.sub(re.escape(ext_dir[i][0][j]) + '$', '', filename)
+                    wife_prefixes_to_remove = []
+                    wife_exts = ext_dir[wife_idx][0]
+                    wife_dirs = ext_dir[wife_idx][1]
+                    wife_prefixes = []
+                else:
+                    # Extended syntax
+                    cur_ext = ext_dir[i][1][j]
+                    wife_idx = (i + 1) % 2
+                    wife_prefixes_to_remove = ext_dir[wife_idx][0]
+                    wife_exts = ext_dir[wife_idx][1]
+                    wife_dirs = ext_dir[wife_idx][2]
+                    wife_prefixes = ext_dir[wife_idx][3]
+                log(50, "Checking if file \"%s\" has extension \"%s\" " % (filename, cur_ext))
+                if not filename.endswith(cur_ext):
+                    continue
 
-                    # Split the base since the current directory might be needed
-                    # and because every is with respect to the base - last_dir
-                    splitted_base, last_dir = os.path.split(base)
-                    log(50, "Splitted base: %s   last dir: %s" % (splitted_base, last_dir))
+                log(50, "\"%s\" has extension \"%s\" " % (filename, cur_ext))
+                name = re.sub(re.escape(cur_ext) + '$', '', filename)
 
-                    log(INFO, "Looking for file \"%s\" with one of the following extension %s in one of the sub directory %s in the path \"%s\"" % (
-                        name, wife_ext, wife_dir, splitted_base))
+                # Handle None, empty set, empty string...
+                # => if it doesn't evaluate to True, replace by empty string
+                if not wife_prefixes_to_remove:
+                    wife_prefixes_to_remove = [""]
 
-                    for d in wife_dir:
-                        log(50, "Investigating directory: \"%s\"" % d)
-                        if "." in d:
-                            log(INFO, "Might need to replace the current directory indicator \".\" by \"%s\" in \"%s\"  " % (
-                                last_dir, d))
-                            d = replace_current_directory(d, last_dir)
-                            log(50, "The new directory: \"%s\"" % d)
+                if not wife_prefixes:
+                    wife_prefixes = [""]
 
-                        # Need to replace the special caracter with the appropriate directory in the husband's file path
-                        if "@" in d:
-                            log(50, "There is a \"@\" in directory \"%s\" need to split the path \"%s\" " %
-                                (d, splitted_base))
-                            dirs = []
-                            head = splitted_base
-                            cnt = 0
-                            tail = ""
-                            while head and head != os.path.sep and cnt < 10:
-                                log(50, "Head: \"%s\" tail: \"%s\" " % (head, tail))
-                                (head, tail) = os.path.split(head)
-                                log(50, "Adding \"%s\" to dirs: \"%s\"" % (tail, dirs))
-                                dirs.append(tail)
-                                cnt = cnt + 1
+                extended_wife_exts = []
+                for e in wife_exts:
+                    if e[0] == '.':
+                        extended_wife_exts.append(e[1:])
+                    else:
+                        extended_wife_exts.append(e)
+                wife_exts = extended_wife_exts
 
-                            dirs.reverse()
-                            log(50, "The component of the path: %s" % dirs)
-                            log(INFO, "Might need to replace the \"@index\" in \"%s\" by one of the following %s" %
-                                (d, dirs))
-                            d = replace_index(d, dirs)
-                            log(50, "The new directory: \"%s\"" % d)
+                for wife_prefix_to_remove in wife_prefixes_to_remove:
+                    log(INFO, "Removing prefix '{}'".format(wife_prefix_to_remove))
+                    prefix_removed_name = lreplace(name, wife_prefix_to_remove, "")
+                    log(INFO, "=> Looking for file \"%s\" with one of the following prefixes %r, "
+                        "one of the following extensions %r, "
+                        "in one of the sub directory %r, from the path \"%s\"" % (
+                            prefix_removed_name, wife_prefixes, wife_exts, wife_dirs, base))
 
-                        log(50, "The investigation directory with everything replaced: \"%s\"" % d)
-                        for wife_i, wife_e in with_index(wife_ext):
-                            path = os.path.join(splitted_base, d)
-                            log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\"" %
-                                (name, path, wife_e))
-                            extensions = [wife_e]
-                            extensions.append('.' + wife_e if wife_e[0] != '.' else wife_e[1:])
-                            for extension in extensions:
-                                wife = os.path.join(path, name + extension)
+                    for wife_prefix in wife_prefixes:
+                        resolved_name = wife_prefix + prefix_removed_name
+                        for wife_dir in wife_dirs:
+                            log(50, "Investigating wife directory: \"%s\"" % wife_dir)
+
+                            # Need to replace the special caracter with the appropriate directory in
+                            # the husband's file path
+                            if "@" in wife_dir:
+                                log(50, "There is a \"@\" in directory \"%s\" need to split the path \"%s\" " %
+                                    (wife_dir, base))
+                                dirs = []
+                                head = base
+                                cnt = 0
+                                tail = ""
+                                while head and head != os.path.sep and cnt < 10:
+                                    log(50, "Head: \"%s\" tail: \"%s\" " % (head, tail))
+                                    (head, tail) = os.path.split(head)
+                                    log(50, "Adding \"%s\" to dirs: \"%s\"" % (tail, dirs))
+                                    dirs.append(tail)
+                                    cnt = cnt + 1
+
+                                dirs.reverse()
+                                log(50, "The component of the path: %s" % dirs)
+                                log(INFO, "Might need to replace the \"@index\" in \"%s\" by one of the following %s" %
+                                    (wife_dir, dirs))
+                                wife_dir = replace_index(wife_dir, dirs)
+                                log(50, "The new directory: \"%s\"" % wife_dir)
+
+                            log(INFO, "The investigation directory with everything replaced: \"%s\"" % wife_dir)
+                            for wife_ext in wife_exts:
+                                print("wife_ext", wife_ext)
+                                path = os.path.join(base, wife_dir)
+                                log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\"" %
+                                    (resolved_name, path, wife_ext))
+                                wife = os.path.join(path, resolved_name + wife_ext)
                                 log(INFO, "Looking for wife file: %s" % wife)
-                                if os.path.isfile(wife):
+                                if not os.path.isfile(wife):
+                                    continue
+                                if (os.path.abspath(self.window.active_view().file_name()) ==
+                                        os.path.abspath(wife)):
+                                    log(INFO, "Found wife file is myself: %s. Continuing." % wife)
+                                else:
                                     log(INFO, "Found a wife file: %s" % wife)
                                     self.window.open_file(wife)
                                     return
-
         else:
             log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
                 (filename, ext_dir[0][0], ext_dir[1][0], syntax))

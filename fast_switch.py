@@ -3,7 +3,6 @@ import sublime
 import sublime_plugin
 import os.path
 import re
-import sys
 
 version = "0.1"
 settings = {}
@@ -198,13 +197,6 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
         else:
             log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
                 (filename, ext_dir[0][0], ext_dir[1][0], syntax))
-
-
-if __name__ == "__main__":
-    import sys
-
-    scc = OppositeFileCommand()
-    scc.run()
 
 
 # Test 1

@@ -27,8 +27,6 @@ def syntax_name(view):
 
 
 def log(verbosity, msg):
-    global settings
-
     if settings.get("verbosity", -1) > verbosity:
         global version
         print("FastSwitch %s: %s" % (version, msg))
@@ -101,7 +99,6 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         log(98, "run: Start")
-        global settings
         # Set user options
         assign_settings()
 

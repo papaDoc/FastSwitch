@@ -12,6 +12,10 @@ Here is an example of a setting:
     // "syntax_X": { ["ext_A1, ext_A2"], ["directory_A1", directory_A2] },
     //               ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]
     //             }
+    // extended syntax:
+    // "mode_Y": { ["prefix_to_remove_A1"], ["ext_A1, ext_A2"], ["directory_A1", "directory_A2"], ["prefix_A1"] },
+    //             ["prefix_to_remove_A1"], ["ext_B1", "ext_B2"], ["directory_B1", ""directory_B2""], ["prefix_A1"]
+    //           }
     // N.B. The "syntax_X" must be the string found in the lower right corner if the SublimeText 2/3
     // Example: "Plain Text", "C++". "Python", "Markdown"
     //
@@ -120,6 +124,20 @@ ls ./foo/src/bar => toto.cpp
 ls ./foo/include/foo/bar/ => toto.h
 when in the following file: ./foo/src/bar/toto.cpp it will switch to ./foo/include/foo/bar/toto.hpp
 when in the following file: ./foo/include/foo/bar/toto.hpp it will switch to ./foo/src/bar/toto.cpp
+
+Example 5:
+With the following setting :
+```
+"Python": [
+            [ ["test_", "test"], ["py"], [".", ".."], [] ],
+            [ [], ["py"], [".", "test", "tests"], ["test_", "test"] ]
+          ],         }
+```
+and with the following directories containing the given file:
+ls ./ => foo.py
+ls ./tests/ => test_foo.py
+when in the following file: ./foo.py it will switch to ./tests/test_foo.py
+when in the following file: ./tests/test_foo.py it will switch to ./foo.py
 
 
 Installation

@@ -213,29 +213,29 @@ if __name__ == "__main__":
 #             [ [".cpp"], ["."] ],
 #             [ ["hpp"],  ["."] ]
 #           ]
-# ls ./foo/src => tata.cpp, tata.hpp
-# ./foo/src/tata.cpp should switch to ./src/tata.hpp
-# ./foo/src/tata.hpp should switch to ./src/tata.cpp
+# ls ./foo/src => test1.cpp, test1.hpp
+# ./foo/src/test1.cpp should switch to ./src/test1.hpp
+# ./foo/src/test1.hpp should switch to ./src/test1.cpp
 
 # Test 2
 #  "C++": [
 #             [ [".cpp"], ["src"] ],
 #             [ [".h"],   ["include"] ]
 #           ]
-# ls ./foo/src => tete.cpp
-# ls ./foo/include => tete.h
-# ./foo/src/tete.cpp should switch to ./include/tete.hpp
-# ./foo/include/tete.hpp should switch to ./src/tete.cpp
+# ls ./foo/src => test2.cpp
+# ls ./foo/include => test2.h
+# ./foo/src/test2.cpp should switch to ./include/test2.hpp
+# ./foo/include/test2.hpp should switch to ./src/test2.cpp
 
 # Test 3
 #  "C++": [
 #             [ [".cpp"], ["../src"] ],
 #             [ [".h"],   ["include/@-1"] ]
 #           ]
-# ls ./foo/src => titi.cpp
-# ls ./foo/include/foo => titi.h
-# ./foo/src/titi.cpp should switch to ./foo/include/foo/titi.hpp
-# ./foo/include/foo/titi.hpp should switch to ./foo/src/titi.cpp
+# ls ./foo/src => test3.cpp
+# ls ./foo/include/foo => test3.h
+# ./foo/src/test3.cpp should switch to ./foo/include/foo/test3.h
+# ./foo/include/foo/test3.h should switch to ./foo/src/test3.cpp
 
 # Test 4
 #  "C++": [
@@ -252,7 +252,7 @@ if __name__ == "__main__":
 #             [ [".js"], ["public/js"] ],
 #             [ ["Spec.js"], ["../test"] ]
 #           ],
-# ls ./foo/public/js => someScript.js
-# ls ./foo/test => someScriptSpec.js
-# ./foo/public/js/someScript.js should switch to ./foo/test/someScriptSpec.js
-# ./foo/test/someScriptSpec.js should switch to ./foo/public/js/someScript.js
+# ls ./foo/public/js => test5.js
+# ls ./foo/test => test5Spec.js
+# ./foo/public/js/test5.js should switch to ./foo/test/test5Spec.js
+# ./foo/test/test5Spec.js should switch to ./foo/public/js/test5.js

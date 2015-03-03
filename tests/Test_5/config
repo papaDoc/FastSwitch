@@ -1,0 +1,4 @@
+JavaScript": [
+             [ [".js"], ["public/js"] ],
+             [ ["Spec.js"], ["../test"] ]
+           ],

@@ -1,8 +1,9 @@
 from __future__ import print_function
-import sublime
-import sublime_plugin
+
 import os.path
 import re
+import sublime
+import sublime_plugin
 
 version = "0.1"
 settings = {}
@@ -166,14 +167,6 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
                 if not wife_prefixes:
                     wife_prefixes = [""]
 
-                extended_wife_exts = []
-                for e in wife_exts:
-                    if e[0] == '.':
-                        extended_wife_exts.append(e[1:])
-                    else:
-                        extended_wife_exts.append(e)
-                wife_exts = extended_wife_exts
-
                 for wife_prefix_to_remove in wife_prefixes_to_remove:
                     log(INFO, "Removing prefix '{}'".format(wife_prefix_to_remove))
                     prefix_removed_name = lreplace(name, wife_prefix_to_remove, "")
@@ -212,7 +205,6 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
 
                             log(INFO, "The investigation directory with everything replaced: \"%s\"" % wife_dir)
                             for wife_ext in wife_exts:
-                                print("wife_ext", wife_ext)
                                 path = os.path.join(base, wife_dir)
                                 log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\"" %
                                     (resolved_name, path, wife_ext))
@@ -228,8 +220,12 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
                                     self.window.open_file(wife)
                                     return
         else:
-            log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
-                (filename, ext_dir[0][0], ext_dir[1][0], syntax))
+            if len(ext_dir[i]) == 2:
+                log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
+                    (filename, ext_dir[0][0], ext_dir[1][0], syntax))
+            else:
+                log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
+                    (filename, ext_dir[0][1], ext_dir[1][1], syntax))
 
 
 # Test 1

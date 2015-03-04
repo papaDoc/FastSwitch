@@ -335,6 +335,9 @@ class TestFastSwitch(unittest.TestCase):
                            ext_dir)
         self.assertPathEqual(os.path.join("TEST_DB", "Test_5", "foo", "test", "test5Spec.js"), wife)
 
+    # @unittest.skip("development ongoing")
+    def testExtendedSyntax(self):
+        self.fail("NotImplementedError")
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

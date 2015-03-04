@@ -16,13 +16,29 @@
 	// foo/bar/directory_B2/file.ext_B2
 	// The first existing file will be openned so the order is important.
 	"C++": [
-			 [ [], ["cpp"], [".", "src"] ],
-			 [ [], ["h", "hpp"], [".", "include"] ]
-		   ],
+		[
+			[".cpp"],
+			["src"]
+		],
+		[
+			["hpp"],
+			["."]
+		]
+	],
 	"Python": [
-				[ ["test_", "test"], ["py"], [".", ".."], [] ],
-				[ [], ["py"], [".", "test", "tests"], ["test_", "test"] ]
-			  ],
+		[
+			["test_", "test"],
+			["py"],
+			[".", ".."],
+			[]
+		],
+		[
+			[],
+			["py"],
+			[".", "test", "tests"],
+			["test_", "test"]
+		]
+	],
 	// As the value of the Verbosity increase more messages will be printed
 	// -1: Nothing logged
 	//  0: Error messages are printed

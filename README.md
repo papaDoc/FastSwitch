@@ -41,6 +41,7 @@ Here is an example of a setting:
            ],
     "verbosity": 0
 ```
+
 With the above settings when in C++
 If you are currently in the file:
   * .../foo/bar/src/file.cpp
@@ -156,4 +157,8 @@ Installation
    * Back in the editor, open up the command palette by pressing cmd+shift+P or ctrl+shift+P
    Type FastSwitch and open up the settings file you want to modify
 
+Use the unit test to validate your changes:
 
+```
+    python lib/fastswitch.py
+```

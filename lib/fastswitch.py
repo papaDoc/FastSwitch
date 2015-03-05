@@ -454,9 +454,5 @@ class TestFastSwitch(unittest.TestCase):
         self.assertPathEqual(os.path.join("test_db", "Test_7", "main.controller.js"),
                              wife)
 
-    @unittest.skip("development ongoing")
-    def testextendedsyntax(self):
-        self.fail("notimplementederror")
-
 if __name__ == '__main__':
     unittest.main(verbosity=2)

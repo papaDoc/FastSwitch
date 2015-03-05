@@ -363,6 +363,97 @@ class TestFastSwitch(unittest.TestCase):
         self.assertPathEqual(os.path.join("test_db", "Test_5", "foo", "public", "js", "test5.js"),
                              wife)
 
+    # Test 6
+    # "javascript": [
+    #    [["test_", "test"],["cpp"],[".", ".."],[]],
+    #    [[],["cpp"],[".", "test", "tests"],["test_", "test"]]
+    #  ],
+    # ls ./test => test_file.h
+    # ls ./ => file.cpp
+    # ./foo/test/test_file.cpp should switch to ./foo/file.cpp
+    # ./foo/file.cpp should switch to ./foo/test/test_file.cpp
+    specTest6 = [
+        [
+                ["test_", "test"],
+                ["cpp"],
+                [".", ".."],
+                []
+        ],
+        [
+            [],
+            ["cpp"],
+            [".", "test", "tests"],
+            ["test_", "test"]
+        ]
+    ]
+
+    # @unittest.skip("development ongoing")
+    def test6_ExtendedSyntaxWithPrefixForTest1(self):
+        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                  "tests_db",
+                                                                  "Test_6",
+                                                                  "file.cpp")),
+                           self.specTest6)
+        self.assertPathEqual(os.path.join("test_db", "Test_6",  "test", "test_file.cpp"),
+                             wife)
+
+    # @unittest.skip("development ongoing")
+    def test6_ExtendedSyntaxWithPrefixForTest2(self):
+        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                  "tests_db",
+                                                                  "Test_6",
+                                                                  "test",
+                                                                  "test_file.cpp"
+                                                                  )),
+                           self.specTest6)
+        self.assertPathEqual(os.path.join("test_db", "Test_6", "file.cpp"),
+                             wife)
+
+    # Test 7
+    # "javascript": [
+    #    [["test_", "test"],["cpp"],[".", ".."],[]],
+    #    [[],["cpp"],[".", "test", "tests"],["test_", "test"]]
+    #  ],
+    # ls ./test => test_file.h
+    # ls ./ => file.cpp
+    # ./foo/test/test_file.cpp should switch to ./foo/file.cpp
+    # ./foo/file.cpp should switch to ./foo/test/test_file.cpp
+    specTest7 = [
+        [
+            [],
+            [".controller.js"],
+            ["."],
+            []
+        ],
+        [
+            [],
+            [".template.js"],
+            ["."],
+            []
+        ]
+    ]
+
+    # @unittest.skip("development ongoing")
+    def test7_ExtendedSyntaxWithPrefixForTest1(self):
+        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                  "tests_db",
+                                                                  "Test_7",
+                                                                  "main.controller.js")),
+                           self.specTest7)
+        self.assertPathEqual(os.path.join("test_db", "Test_7",  "main.template.js"),
+                             wife)
+
+    # @unittest.skip("development ongoing")
+    def test7_ExtendedSyntaxWithPrefixForTest2(self):
+        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                  "tests_db",
+                                                                  "Test_7",
+                                                                  "main.template.js"
+                                                                  )),
+                           self.specTest7)
+        self.assertPathEqual(os.path.join("test_db", "Test_7", "main.controller.js"),
+                             wife)
+
     @unittest.skip("development ongoing")
     def testextendedsyntax(self):
         self.fail("notimplementederror")

@@ -122,7 +122,6 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
                 wife_dirs = ext_dir[wife_idx][2]
                 wife_prefixes = ext_dir[wife_idx][3]
             cur_ext = cur_ext.strip()
-            log(50, "Checking if file \"{}\" has extension \"{}\"".format(filename, cur_ext))
             if not filename.endswith(cur_ext):
                 continue
 
@@ -181,18 +180,12 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
                                 "with extension \"{}\"".format(resolved_name, path, wife_ext))
                             wife = os.path.join(path, resolved_name + wife_ext)
                             wife = os.path.normpath(wife)
-                            log(INFO, "Looking for wife file: {}".format(wife))
                             if not os.path.isfile(wife):
                                 log(INFO, "Path does not exists: {}".format(wife))
                                 continue
                             return wife
     else:
-        if len(ext_dir[i]) == 2:
-            log(INFO, "The file [{}] has no extension found in the list {}, "
-                "{} for the syntax [{}].".format(filename, ext_dir[0][0], ext_dir[1][0], syntax))
-        else:
-            log(INFO, "The file [{}] has no extension found in the list {}, "
-                "{} for the syntax [{}].".format(filename, ext_dir[0][1], ext_dir[1][1], syntax))
+        log(INFO, "Cannot find wife file for {}, using the syntax '{}'.".format(filename, syntax))
 
 
 class TestFastSwitch(unittest.TestCase):
@@ -202,129 +195,150 @@ class TestFastSwitch(unittest.TestCase):
 
     def assertPathEqual(self, expected, wife):
         self.assertIsNotNone(wife)
-        wife = wife.replace(self.test_db, "TEST_DB")
+        wife = wife.replace(self.test_db, "test_db")
         self.assertEqual(expected, wife)
 
+    # Test 1
+    #  "C++": [
+    #             [ [".cpp"], ["."] ],
+    #             [ ["hpp"],  ["."] ]
+    #           ]
+    # ls ./foo/src => test1.cpp, test1.hpp
+    # ./foo/src/test1.cpp should switch to ./src/test1.hpp
+    # ./foo/src/test1.hpp should switch to ./src/test1.cpp
+    specTest1 = [
+        [[".cpp"], ["."]],
+        [[".hpp"],  ["."]]
+    ]
+
     # @unittest.skip("development ongoing")
-    def testSrcHdrInSameDir(self):
-        # Test 1
-        #  "C++": [
-        #             [ [".cpp"], ["."] ],
-        #             [ ["hpp"],  ["."] ]
-        #           ]
-        # ls ./foo/src => test1.cpp, test1.hpp
-        # ./foo/src/test1.cpp should switch to ./src/test1.hpp
-        # ./foo/src/test1.hpp should switch to ./src/test1.cpp
-        ext_dir = [
-            [[".cpp"], ["."]],
-            [[".hpp"],  ["."]]
-        ]
+    def test1_SrcHdrInSameDir1(self):
         wife = fast_switch(0, "C++", os.path.join(self.test_db,
                                                   "Test_1",
                                                   "src",
                                                   "test1.cpp"),
-                           ext_dir)
-        self.assertPathEqual(os.path.join("TEST_DB", "Test_1", "src", "test1.hpp"), wife)
+                           self.specTest1)
+        self.assertPathEqual(os.path.join("test_db", "Test_1", "src", "test1.hpp"), wife)
 
+    # @unittest.skip("development ongoing")
+    def test1_SrcHdrInSameDir2(self):
         wife = fast_switch(0, "C++", os.path.join(self.test_db,
                                                   "Test_1",
                                                   "src",
                                                   "test1.hpp"),
-                           ext_dir)
-        self.assertPathEqual(os.path.join("TEST_DB", "Test_1", "src", "test1.cpp"), wife)
+                           self.specTest1)
+        self.assertPathEqual(os.path.join("test_db", "Test_1", "src", "test1.cpp"), wife)
 
+    # Test 2
+    #  "C++": [
+    #             [ [".cpp"], ["src"] ],
+    #             [ [".h"],   ["include"] ]
+    #           ]
+    # ls ./foo/src => test2.cpp
+    # ls ./foo/include => test2.h
+    # ./foo/src/test2.cpp should switch to ./include/test2.hpp
+    # ./foo/include/test2.hpp should switch to ./src/test2.cpp
+    specTest2 = [
+        [[".cpp"], ["../src"]],
+        [[".h"],   ["../include"]]
+    ]
     # @unittest.skip("development ongoing")
-    def testSrcHdrInTwoSibblingDirs(self):
-        # Test 2
-        #  "C++": [
-        #             [ [".cpp"], ["src"] ],
-        #             [ [".h"],   ["include"] ]
-        #           ]
-        # ls ./foo/src => test2.cpp
-        # ls ./foo/include => test2.h
-        # ./foo/src/test2.cpp should switch to ./include/test2.hpp
-        # ./foo/include/test2.hpp should switch to ./src/test2.cpp
-        ext_dir = [
-            [[".cpp"], ["../src"]],
-            [[".h"],   ["../include"]]
-        ]
+
+    def test2_SrcHdrInTwoSibblingDirs1(self):
         wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                   "tests_db",
                                                                   "Test_2",
                                                                   "src",
                                                                   "test2.cpp")),
-                           ext_dir)
-        self.assertPathEqual(os.path.join("TEST_DB", "Test_2", "include", "test2.h"), wife)
+                           self.specTest2)
+        self.assertPathEqual(os.path.join("test_db", "Test_2", "include", "test2.h"), wife)
 
+    # @unittest.skip("development ongoing")
+    def test2_SrcHdrInTwoSibblingDirs2(self):
         wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                   "tests_db",
                                                                   "Test_2",
                                                                   "include",
                                                                   "test2.h")),
-                           ext_dir)
-        self.assertPathEqual(os.path.join("TEST_DB", "Test_2", "src", "test2.cpp"), wife)
+                           self.specTest2)
+        self.assertPathEqual(os.path.join("test_db", "Test_2", "src", "test2.cpp"), wife)
+
+    # Test 3
+    #  "C++": [
+    #             [ [".cpp"], ["../src"] ],
+    #             [ [".h"],   ["include/@-1"] ]
+    #           ]
+    # ls ./foo/src => test3.cpp
+    # ls ./foo/include/foo => test3.h
+    # ./foo/src/test3.cpp should switch to ./foo/include/foo/test3.h
+    # ./foo/include/foo/test3.h should switch to ./foo/src/test3.cpp
+    specTest3 = [
+        [[".cpp"], ["../src"]],
+        [[".h"],   ["../include/@-1"]]
+    ]
 
     @unittest.skip("development ongoing")
-    def testHdrInPackageDir(self):
-        # Test 3
-        #  "C++": [
-        #             [ [".cpp"], ["../src"] ],
-        #             [ [".h"],   ["include/@-1"] ]
-        #           ]
-        # ls ./foo/src => test3.cpp
-        # ls ./foo/include/foo => test3.h
-        # ./foo/src/test3.cpp should switch to ./foo/include/foo/test3.h
-        # ./foo/include/foo/test3.h should switch to ./foo/src/test3.cpp
-        ext_dir = [
-            [[".cpp"], ["../src"]],
-            [[".h"],   ["../include/@-1"]]
-        ]
+    def test3_HdrInPackageDir1(self):
+        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                  "tests_db",
+                                                                  "Test_3",
+                                                                  "foo",
+                                                                  "src",
+                                                                  "test3.cpp")),
+                           self.specTest3)
+        self.assertPathEqual(os.path.join("test_db", "Test_3", "foo", "include", "foo", "test3.h"),
+                             wife)
+
+    @unittest.skip("development ongoing")
+    def test3_HdrInPackageDir2(self):
         wife = fast_switch(100, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                     "tests_db",
                                                                     "Test_3",
+                                                                    "include",
                                                                     "foo",
-                                                                    "src",
-                                                                    "test3.cpp")),
-                           ext_dir)
-        self.assertPathEqual(os.path.join("TEST_DB", "Test_3", "foo", "include", "foo", "test3.hpp"), wife)
+                                                                    "test3.h")),
+                           self.specTest3)
+        self.assertPathEqual(os.path.join("test_db", "Test_3", "foo", "src", "test3.cpp"), wife)
+
+    # Test 4
+    #  "C++": [
+    #             [ [".cpp"], ["../../src/."] ],
+    #             [ [".h"],   ["../include/@-2/."] ]
+    #           ]
+    # ls ./foo/src/bar => toto.cpp
+    # ls ./foo/include/foo/bar/ => toto.h
+    # ./foo/src/bar/toto.cpp should switch to ./foo/include/foo/bar/toto.h
+    # ./foo/include/foo/bar/toto.hpp should switch to ./foo/src/bar/toto.cpp
+    specTest4 = [
+        [[".cpp"], ["../../src/."]],
+        [[".h"],   ["../include/@-2/."]]
+    ]
 
     @unittest.skip("development ongoing")
-    def testSrcHdrInComplexPackageDir(self):
-        # Test 4
-        #  "C++": [
-        #             [ [".cpp"], ["../../src/."] ],
-        #             [ [".h"],   ["../include/@-2/."] ]
-        #           ]
-        # ls ./foo/src/bar => toto.cpp
-        # ls ./foo/include/foo/bar/ => toto.h
-        # ./foo/src/bar/toto.cpp should switch to ./foo/include/foo/bar/toto.h
-        # ./foo/include/foo/bar/toto.hpp should switch to ./foo/src/bar/toto.cpp
-        ext_dir = [
-            [[".cpp"], ["../../src/."]],
-            [[".h"],   ["../include/@-2/."]]
-        ]
+    def test4_SrcHdrInComplexPackageDir(self):
         wife = fast_switch(100, "C++", os.path.join(self.test_db,
                                                     "Test_4",
                                                     "src",
                                                     "test4.cpp"),
-                           ext_dir)
-        self.assertPathEqual(os.path.join("TEST_DB", "Test_4", "src", "test4.hpp"), wife)
+                           self.specTest4)
+        self.assertPathEqual(os.path.join("test_db", "Test_4", "src", "test4.hpp"), wife)
+
+    # Test 5
+    # "javascript": [
+    #             [ [".js"], ["../public/js"] ],
+    #             [ ["Spec.js"], ["../test"] ]
+    #           ],
+    # ls ./foo/public/js => test5.js
+    # ls ./foo/test => test5Spec.js
+    # ./foo/public/js/test5.js should switch to ./foo/test/test5Spec.js
+    # ./foo/test/test5Spec.js should switch to ./foo/public/js/test5.js
+    specTest5 = [
+        [[".js"], ["../public/js"]],
+        [["Spec.js"], ["../../test"]]
+    ]
 
     # @unittest.skip("development ongoing")
-    def testHdrInPublicJs(self):
-        # Test 5
-        # "JavaScript": [
-        #             [ [".js"], ["public/js"] ],
-        #             [ ["Spec.js"], ["../test"] ]
-        #           ],
-        # ls ./foo/public/js => test5.js
-        # ls ./foo/test => test5Spec.js
-        # ./foo/public/js/test5.js should switch to ./foo/test/test5Spec.js
-        # ./foo/test/test5Spec.js should switch to ./foo/public/js/test5.js
-        ext_dir = [
-            [[".js"], ["public/js"]],
-            [["Spec.js"], ["../../test"]]
-        ]
+    def test5_HdrInPublicJs1(self):
         wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                   "tests_db",
                                                                   "Test_5",
@@ -332,12 +346,26 @@ class TestFastSwitch(unittest.TestCase):
                                                                   "public",
                                                                   "js",
                                                                   "test5.js")),
-                           ext_dir)
-        self.assertPathEqual(os.path.join("TEST_DB", "Test_5", "foo", "test", "test5Spec.js"), wife)
+                           self.specTest5)
+        self.assertPathEqual(os.path.join("test_db", "Test_5", "foo", "test", "test5Spec.js"),
+                             wife)
 
     # @unittest.skip("development ongoing")
-    def testExtendedSyntax(self):
-        self.fail("NotImplementedError")
+    def test5_HdrInPublicJs2(self):
+        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                  "tests_db",
+                                                                  "Test_5",
+                                                                  "foo",
+                                                                  "test",
+                                                                  "test5Spec.js"
+                                                                  )),
+                           self.specTest5)
+        self.assertPathEqual(os.path.join("test_db", "Test_5", "foo", "public", "js", "test5.js"),
+                             wife)
+
+    @unittest.skip("development ongoing")
+    def testextendedsyntax(self):
+        self.fail("notimplementederror")
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

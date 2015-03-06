@@ -34,19 +34,19 @@ Here is an example of a setting:
 //              "my_extensions": [".ext_A"],
 //              "wife_directories": ["."],
 //              "wife_prefixes": [],
-//              "wife_extensions": [".ext_B"],
+//              "wife_extensions": [".ext_B", ".ext_C"],
 //          }, {
 //              "my_prefixes": [],
 //              "my_extensions": [".ext_B"],
 //              "wife_directories": [],
 //              "wife_prefixes": [],
-//              "wife_extensions": [".extC"],
+//              "wife_extensions": [".extC", ".ext_A"],
 //          }, {
 //              "my_prefixes": [],
 //              "my_extensions": [".extC"],
 //              "wife_directories": [],
 //              "wife_prefixes": [],
-//              "wife_extensions": [".ext_A"],
+//              "wife_extensions": [".ext_A", ".ext_B"],
 //          }]
 //      }, {
 //
@@ -188,27 +188,33 @@ With the following setting:
         "my_extensions": [".controller.js"],
         "wife_directories": ["."],
         "wife_prefixes": [],
-        "wife_extensions": [".template.html"],
+        "wife_extensions": [".template.html", ".service.js"],
     }, {
         "my_prefixes": [],
         "my_extensions": [".template.html"],
         "wife_directories": [],
         "wife_prefixes": [],
-        "wife_extensions": [".service.js"],
+        "wife_extensions": [".service.js", ".controller.js"],
     }, {
         "my_prefixes": [],
         "my_extensions": [".service.js"],
         "wife_directories": [],
         "wife_prefixes": [],
-        "wife_extensions": [".controller.js"],
+        "wife_extensions": [".controller.js", ".template.html"],
     }],
-}]
+
+
 ```
 and with the following directories containing the given file:
 ls ./ => file.controller.js, file.template.html, file.service.js
 when in the following file: ./file.controller.js it will switch to ./file.template.html
 when in the following file: ./file.template.html it will switch to ./file.service.js
 when in the following file: ./file.service.js it will switch to ./file.controller.js
+
+and with the following directories containing the given file:
+ls ./ => file.controller.js, file.template.html
+when in the following file: ./file.controller.js it will switch to ./file.template.html
+when in the following file: ./file.template.html it will switch to ./file.controller.js
 
 
 Installation

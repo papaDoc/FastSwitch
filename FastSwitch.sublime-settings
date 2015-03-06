@@ -25,24 +25,43 @@
 			["."]
 		]
 	],
-	"Python": [
-		[
-			["test_", "test"],
-			["py"],
-			[".", ".."],
-			[]
-		],
-		[
-			[],
-			["py"],
-			[".", "test", "tests"],
-			["test_", "test"]
-		]
-	],
+	"extended": [{
+		"syntaxes": ["js", "html"],
+		"first_way": {
+			"my_prefixes": [],
+			"my_extensions": [".controller.js"],
+			"wife_directories": ["."],
+			"wife_prefixes": [],
+			"wife_extensions": [".template.html"],
+		},
+		"second_way": {
+			"my_prefixes": [],
+			"my_extensions": [".template.html"],
+			"wife_directories": [],
+			"wife_prefixes": [],
+			"wife_extensions": [".controller.js"],
+		}
+	}, {
+		"syntaxes": ["Python"],
+		"first_way": {
+			"my_prefixes": ["test_", "test"],
+			"my_extensions": [".py"],
+			"wife_directories": [".", ".."],
+			"wife_prefixes": [],
+			"wife_extensions": [".py"],
+		},
+		"second_way": {
+			"my_prefixes": [],
+			"my_extensions": [".py"],
+			"wife_directories": [".", "test", "tests"],
+			"wife_prefixes": ["test_", "test"],
+			"wife_extensions": [".py"],
+		}
+	}],
 	// As the value of the Verbosity increase more messages will be printed
 	// -1: Nothing logged
 	//  0: Error messages are printed
 	//  1: Can tell you why no switch occured
 	// 98: Logging when entering a function
-	"verbosity": 0
+	"verbosity": 100
 }

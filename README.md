@@ -8,38 +8,64 @@ The file will be searched in a list of user define directory. The first file fou
 
 Here is an example of a setting:
 ```
-    // For the settings you define the syntax for which the extension and directory applies
-    // "syntax_X": { ["ext_A1, ext_A2"], ["directory_A1", directory_A2] },
-    //               ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]
-    //             }
-    // extended syntax:
-    // "mode_Y": { ["prefix_to_remove_A1"], ["ext_A1, ext_A2"], ["directory_A1", "directory_A2"], ["prefix_A1"] },
-    //             ["prefix_to_remove_A1"], ["ext_B1", "ext_B2"], ["directory_B1", ""directory_B2""], ["prefix_A1"]
-    //           }
-    // N.B. The "syntax_X" must be the string found in the lower right corner if the SublimeText 2/3
-    // Example: "Plain Text", "C++". "Python", "Markdown"
-    //
-    // With the above settings when in mode_X (Ex C++) and you are currently in the file:
-    // .../foo/bar/directory_A1/file.ext_A1
-    // using the fastswitch pluging then the pluging will try to open the file:
-    // foo/bar/directory_B1/file.ext_B1
-    // foo/bar/directory_B1/file.ext_B2
-    // foo/bar/directory_B2/file.ext_B1
-    // foo/bar/directory_B2/file.ext_B2
-    // The first existing file will be openned so the order is important.
-    //
-    // N.B. The "." will be replaced by the current directory
-    //      Ex: If you are currently in  c:\foo\src\bar\file.cpp the "include\." correspond to "include\bar"
-    //      The "@d" means to replace the tag by the corresponding directory in path of the current file.
-    //      d must be a negative number
-    //      Ex: If you are currently in c:\foo\bar\src\file.cpp the "@-1" correspond to the directory "bar"
-    //
-    // For the C++ syntax, I'm using the following
-    "C++": [
-             [ [".cpp"], ["src", "../src", "../../src/."] ],
-             [ ["h", "hpp"], [".", "include", "include/@-1", "../include/@-2/."] ]
-           ],
-    "verbosity": 0
+// For the settings you define the syntax for which the extension and directory applies
+// "syntax_X": { ["ext_A1, ext_A2"], ["directory_A1", directory_A2] },
+//               ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]
+//             }
+// extended syntax:
+// N.B. The "syntax_X" must be the string found in the lower right corner if the SublimeText 2/3
+// Example: "Plain Text", "C++". "Python", "Markdown"
+//
+// With the above settings when in mode_X (Ex C++) and you are currently in the file:
+//     .../foo/bar/directory_A1/file.ext_A1
+//
+// using the fastswitch pluging then the pluging will try to open the file:
+//     foo/bar/directory_B1/file.ext_B1
+//     foo/bar/directory_B1/file.ext_B2
+//     foo/bar/directory_B2/file.ext_B1
+//     foo/bar/directory_B2/file.ext_B2
+//
+// The first existing file will be openned so the order is important.
+//
+//   "extended": [{
+//          "syntaxes": ["mode_X", "mode_Y"],
+//          "transitions": [{
+//              "my_prefixes": [],
+//              "my_extensions": [".ext_A"],
+//              "wife_directories": ["."],
+//              "wife_prefixes": [],
+//              "wife_extensions": [".ext_B"],
+//          }, {
+//              "my_prefixes": [],
+//              "my_extensions": [".ext_B"],
+//              "wife_directories": [],
+//              "wife_prefixes": [],
+//              "wife_extensions": [".extC"],
+//          }, {
+//              "my_prefixes": [],
+//              "my_extensions": [".extC"],
+//              "wife_directories": [],
+//              "wife_prefixes": [],
+//              "wife_extensions": [".ext_A"],
+//          }]
+//      }, {
+//
+//          ...
+//
+//   }]
+//
+// N.B. The "." will be replaced by the current directory
+//      Ex: If you are currently in  c:\foo\src\bar\file.cpp the "include\." correspond to "include\bar"
+//      The "@d" means to replace the tag by the corresponding directory in path of the current file.
+//      d must be a negative number
+//      Ex: If you are currently in c:\foo\bar\src\file.cpp the "@-1" correspond to the directory "bar"
+//
+// For the C++ syntax, I'm using the following
+"C++": [
+         [ [".cpp"], ["src", "../src", "../../src/."] ],
+         [ ["h", "hpp"], [".", "include", "include/@-1", "../include/@-2/."] ]
+       ],
+"verbosity": 0
 ```
 
 With the above settings when in C++
@@ -127,18 +153,62 @@ when in the following file: ./foo/src/bar/toto.cpp it will switch to ./foo/inclu
 when in the following file: ./foo/include/foo/bar/toto.hpp it will switch to ./foo/src/bar/toto.cpp
 
 Example 5:
-With the following setting :
+With the following setting:
 ```
-"Python": [
-            [ ["test_", "test"], ["py"], [".", ".."], [] ],
-            [ [], ["py"], [".", "test", "tests"], ["test_", "test"] ]
-          ],         }
+"extended": [{
+    "syntaxes": ["Python"],
+    "transitions": [{
+        "my_prefixes": ["test_", "test"],
+        "my_extensions": [".py"],
+        "wife_directories": [".", ".."],
+        "wife_prefixes": [],
+        "wife_extensions": [".py"],
+    }, {
+        "my_prefixes": [],
+        "my_extensions": [".py"],
+        "wife_directories": [".", "test", "tests"],
+        "wife_prefixes": ["test_", "test"],
+        "wife_extensions": [".py"],
+    }]
+}]
 ```
 and with the following directories containing the given file:
 ls ./ => foo.py
 ls ./tests/ => test_foo.py
 when in the following file: ./foo.py it will switch to ./tests/test_foo.py
 when in the following file: ./tests/test_foo.py it will switch to ./foo.py
+
+Example 6:
+With the following setting:
+```
+"extended": [{
+    "syntaxes": ["JavaScript", "HTML"],
+    "transitions": [{
+        "my_prefixes": [],
+        "my_extensions": [".controller.js"],
+        "wife_directories": ["."],
+        "wife_prefixes": [],
+        "wife_extensions": [".template.html"],
+    }, {
+        "my_prefixes": [],
+        "my_extensions": [".template.html"],
+        "wife_directories": [],
+        "wife_prefixes": [],
+        "wife_extensions": [".service.js"],
+    }, {
+        "my_prefixes": [],
+        "my_extensions": [".service.js"],
+        "wife_directories": [],
+        "wife_prefixes": [],
+        "wife_extensions": [".controller.js"],
+    }],
+}]
+```
+and with the following directories containing the given file:
+ls ./ => file.controller.js, file.template.html, file.service.js
+when in the following file: ./file.controller.js it will switch to ./file.template.html
+when in the following file: ./file.template.html it will switch to ./file.service.js
+when in the following file: ./file.service.js it will switch to ./file.controller.js
 
 
 Installation

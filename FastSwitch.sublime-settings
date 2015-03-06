@@ -3,18 +3,44 @@
 	// "mode_X": { ["ext_A1, ext_A2"], ["directory_A1", "directory_A2"] },
 	//             ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]
 	//           }
-	// extended syntax:
-	// "mode_Y": { ["prefix_to_remove_A1"], ["ext_A1, ext_A2"], ["directory_A1", "directory_A2"], ["prefix_A1"] },
-	//             ["prefix_to_remove_A1"], ["ext_B1", "ext_B2"], ["directory_B1", ""directory_B2""], ["prefix_A1"]
-	//           }
 	// With the above settings when in mode_X (Ex C++) and you are currently in the file:
-	// .../foo/bar/directory_A1/file.ext_A1
-	// using the fastswitch pluging then the pluging will try to open the file:
-	// foo/bar/directory_B1/file.ext_B1
-	// foo/bar/directory_B1/file.ext_B2
-	// foo/bar/directory_B2/file.ext_B1
-	// foo/bar/directory_B2/file.ext_B2
+	//     .../foo/bar/directory_A1/file.ext_A1
+	//
+	// using the FastSwith pluging then the pluging will try to open the file:
+	//     foo/bar/directory_B1/file.ext_B1
+	//     foo/bar/directory_B1/file.ext_B2
+	//     foo/bar/directory_B2/file.ext_B1
+	//     foo/bar/directory_B2/file.ext_B2
 	// The first existing file will be openned so the order is important.
+	//
+	// extended syntax:
+	//   "extended": [{
+	//   		"syntaxes": ["mode_X", "mode_Y"],
+	//   		"transitions": [{
+	//   			"my_prefixes": [],
+	//   			"my_extensions": [".ext_A"],
+	//   			"wife_directories": ["."],
+	//   			"wife_prefixes": [],
+	//   			"wife_extensions": [".ext_B"],
+	//   		}, {
+	//   			"my_prefixes": [],
+	//   			"my_extensions": [".ext_B"],
+	//   			"wife_directories": [],
+	//   			"wife_prefixes": [],
+	//   			"wife_extensions": [".extC"],
+	//   		}, {
+	//   			"my_prefixes": [],
+	//   			"my_extensions": [".extC"],
+	//   			"wife_directories": [],
+	//   			"wife_prefixes": [],
+	//   			"wife_extensions": [".ext_A"],
+	//   		}]
+	//   	}, {
+	//
+	//   		...
+	//
+	//   }]
+
 	"C++": [
 		[
 			[".cpp"],

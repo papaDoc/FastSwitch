@@ -26,7 +26,7 @@
 		]
 	],
 	"extended": [{
-		"syntaxes": ["js", "html"],
+	"syntaxes": ["JavaScript", "HTML"],
 		"first_way": {
 			"my_prefixes": [],
 			"my_extensions": [".controller.js"],

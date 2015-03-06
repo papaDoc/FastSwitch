@@ -2,10 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import itertools
 import os.path
 import re
+import sys
 import unittest
-import itertools
 
 version = "0.1"
 
@@ -177,6 +178,9 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
 
 def filter_directory(wife_dir, path):
     path = os.path.dirname(path)
+    # special handling for windows path => replace "/" (from conf) by \\
+    if sys.platform == "win32":
+        wife_dir = wife_dir.replace("/", "\\")
     log(100, "Magic filter for wife {!r}, from path {!r}".format(wife_dir, path))
     parts = path.split(os.path.sep)
     parts.reverse()
@@ -217,13 +221,13 @@ def extended_fast_switch(verbose_level, syntax, path, extended_settings):
         if syntax not in extended_setting['syntaxes']:
             continue
         log(50, "Selecting configuration for syntax {}: {!r}".format(syntax, extended_setting))
-        for way in ["first_way", "second_way"]:
-            log(100, "Way: {!r}".format(way))
-            my_extensions = extended_setting[way]['my_extensions']
-            my_prefixes = extended_setting[way]['my_prefixes']
-            wife_directories = extended_setting[way]['wife_directories']
-            wife_prefixes = extended_setting[way]['wife_prefixes']
-            wife_extensions = extended_setting[way]['wife_extensions']
+        for ith, transition in enumerate(extended_setting['transitions']):
+            log(100, "transition number {!r}".format(ith + 1))
+            my_extensions = transition['my_extensions']
+            my_prefixes = transition['my_prefixes']
+            wife_directories = transition['wife_directories']
+            wife_prefixes = transition['wife_prefixes']
+            wife_extensions = transition['wife_extensions']
 
             log(100, "Extension matching: {!r}".format(my_extensions))
 
@@ -254,7 +258,7 @@ def extended_fast_switch(verbose_level, syntax, path, extended_settings):
             else:
                 found_prefix = ""
 
-            log(10, "Selecting way '{}' for file '{}'".format(way, path))
+            log(10, "Selecting transition {}' for file '{}'".format(ith, path))
             log(50, "  my extension:", found_ext)
             if found_prefix:
                 log(50, "  my prefix:", found_prefix)
@@ -502,20 +506,21 @@ class TestFastSwitch(unittest.TestCase):
         'extended': [
             {
                 'syntaxes': ["C++"],
-                'first_way':{
-                    'my_prefixes': ["test_", "test"],
-                    'my_extensions': [".cpp"],
-                    'wife_directories': [".", ".."],
-                    'wife_prefixes': [],
-                    'wife_extensions': ['.cpp'],
-                },
-                'second_way':{
-                    'my_prefixes': [],
-                    'my_extensions': [".cpp"],
-                    'wife_directories': [".", "test", "tests"],
-                    'wife_prefixes': ["test_", "test"],
-                    'wife_extensions': ['.cpp'],
-                }
+                'transitions':[
+                    {
+                        'my_prefixes': ["test_", "test"],
+                        'my_extensions': [".cpp"],
+                        'wife_directories': [".", ".."],
+                        'wife_prefixes': [],
+                        'wife_extensions': ['.cpp'],
+                    }, {
+                        'my_prefixes': [],
+                        'my_extensions': [".cpp"],
+                        'wife_directories': [".", "test", "tests"],
+                        'wife_prefixes': ["test_", "test"],
+                        'wife_extensions': ['.cpp'],
+                    }
+                ]
             }
         ]
     }
@@ -552,20 +557,27 @@ class TestFastSwitch(unittest.TestCase):
         'extended': [
             {
                 'syntaxes': ["js", "html"],
-                'first_way':{
-                    'my_prefixes': [],
-                    'my_extensions': [".controller.js"],
-                    'wife_directories': ["."],
-                    'wife_prefixes': [],
-                    'wife_extensions': ['.template.html'],
-                },
-                'second_way':{
-                    'my_prefixes': [],
-                    'my_extensions': [".template.html"],
-                    'wife_directories': [],
-                    'wife_prefixes': [],
-                    'wife_extensions': ['.controller.js'],
-                }
+                'transitions': [
+                    {
+                        'my_prefixes': [],
+                        'my_extensions': [".controller.js"],
+                        'wife_directories': ["."],
+                        'wife_prefixes': [],
+                        'wife_extensions': ['.template.html'],
+                    }, {
+                        'my_prefixes': [],
+                        'my_extensions': [".template.html"],
+                        'wife_directories': [],
+                        'wife_prefixes': [],
+                        'wife_extensions': ['.service.js'],
+                    }, {
+                        'my_prefixes': [],
+                        'my_extensions': [".service.js"],
+                        'wife_directories': [],
+                        'wife_prefixes': [],
+                        'wife_extensions': ['.controller.js'],
+                    }
+                ]
             }
         ]
     }
@@ -590,7 +602,23 @@ class TestFastSwitch(unittest.TestCase):
                                                                  "main.template.html"
                                                                  )),
                                     self.specTest7['extended'])
-        self.assertPathEqual(os.path.join("TESTS_DB", "Test_7", "main.controller.js"),
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_7",
+                                          "main.service.js"),
+                             wife)
+
+    # @unittest.skip("development ongoing")
+    def test7_ExtendedSyntax_WithPrefixForTest3(self):
+        wife = extended_fast_switch(0, "html",
+                                    os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                 "tests_db",
+                                                                 "Test_7",
+                                                                 "main.service.js"
+                                                                 )),
+                                    self.specTest7['extended'])
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_7",
+                                          "main.controller.js"),
                              wife)
 
     # Test 8 (use file from Test 4)
@@ -600,20 +628,22 @@ class TestFastSwitch(unittest.TestCase):
         'extended': [
             {
                 'syntaxes': ["C++", "C"],
-                'first_way':{
-                    'my_prefixes': [],
-                    'my_extensions': [".cpp"],
-                    'wife_directories': ["../../include/@-2/@0"],  # @0 == "."
-                    'wife_prefixes': [],
-                    'wife_extensions': ['.h'],
-                },
-                'second_way':{
-                    'my_prefixes': [],
-                    'my_extensions': [".h"],
-                    'wife_directories': ["../../../src/."],  # . == @0
-                    'wife_prefixes': [],
-                    'wife_extensions': ['.cpp'],
-                }
+                'transitions':[
+                    {
+                        'my_prefixes': [],
+                        'my_extensions': [".cpp"],
+                        'wife_directories': ["../../include/@-2/@0"],  # @0 == "."
+                        'wife_prefixes': [],
+                        'wife_extensions': ['.h'],
+                    },
+                    {
+                        'my_prefixes': [],
+                        'my_extensions': [".h"],
+                        'wife_directories': ["../../../src/."],  # . == @0
+                        'wife_prefixes': [],
+                        'wife_extensions': ['.cpp'],
+                    }
+                ]
             }
         ]
     }

@@ -11,7 +11,8 @@ import sublime_plugin
 from .lib.fastswitch import ERROR
 from .lib.fastswitch import INFO
 from .lib.fastswitch import WARNING
-from .lib.fastswitch import fast_switch, extended_fast_switch
+from .lib.fastswitch import extended_fast_switch
+from .lib.fastswitch import fast_switch
 from .lib.fastswitch import log
 
 

@@ -28,7 +28,7 @@ def lreplace(string, pattern, sub):
 def log(verbosity, msg, *args):
     if current_verbosity >= verbosity:
         global version
-        print("FastSwitch {}: {}".format(version, msg), *args)
+        print("FastSwitch[{}]: {}".format(verbosity, msg), *args)
 
 
 def with_index(seq):
@@ -215,12 +215,11 @@ def extended_fast_switch(verbose_level, syntax, path, extended_settings):
     current_verbosity = verbose_level
 
     log(50, "")
-    log(50, "====")
     log(1, "Analysing: {!r}, syntax: {!r}".format(path, syntax))
     for extended_setting in extended_settings:
         if syntax not in extended_setting['syntaxes']:
             continue
-        log(50, "Selecting configuration for syntax {}: {!r}".format(syntax, extended_setting))
+        log(3, "Selecting configuration for syntax {}: {!r}".format(syntax, extended_setting))
         for ith, transition in enumerate(extended_setting['transitions']):
             log(100, "transition number {!r}".format(ith + 1))
             my_extensions = transition['my_extensions']
@@ -258,13 +257,13 @@ def extended_fast_switch(verbose_level, syntax, path, extended_settings):
             else:
                 found_prefix = ""
 
-            log(10, "Selecting transition {}' for file '{}'".format(ith, path))
-            log(50, "  my extension:", found_ext)
+            log(1, "Selecting transition {}' for file '{}'".format(ith, path))
+            log(2, "  my extension:", found_ext)
             if found_prefix:
-                log(50, "  my prefix:", found_prefix)
-            log(50, "  wife directories:", wife_directories)
-            log(50, "  wife prefixes:", wife_prefixes)
-            log(50, "  wife extensions:", wife_extensions)
+                log(2, "  my prefix:", found_prefix)
+            log(2, "  wife directories:", wife_directories)
+            log(2, "  wife prefixes:", wife_prefixes)
+            log(2, "  wife extensions:", wife_extensions)
 
             if not wife_prefixes:
                 # if not set, search with empty prefix (so only remove my prefix)
@@ -316,7 +315,7 @@ def extended_fast_switch(verbose_level, syntax, path, extended_settings):
                     log(100, "Found wife: {!r}".format(wife_path))
                     return wife_path
 
-    log(50, "====")
+    log(1, "No wife found for file {!r}".format(path))
 
 
 class TestFastSwitch(unittest.TestCase):

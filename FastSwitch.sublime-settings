@@ -93,5 +93,5 @@
 	//  0: Error messages are printed
 	//  1: Can tell you why no switch occured
 	// 98: Logging when entering a function
-	"verbosity": 100
+	"verbosity": 1
 }

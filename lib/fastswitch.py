@@ -5,6 +5,7 @@ from __future__ import print_function
 import os.path
 import re
 import unittest
+import itertools
 
 version = "0.1"
 
@@ -23,10 +24,10 @@ def lreplace(string, pattern, sub):
     return re.sub('^{}'.format(pattern), sub, string)
 
 
-def log(verbosity, msg):
-    if current_verbosity > verbosity:
+def log(verbosity, msg, *args):
+    if current_verbosity >= verbosity:
         global version
-        print("FastSwitch {}: {}".format(version, msg))
+        print("FastSwitch {}: {}".format(version, msg), *args)
 
 
 def with_index(seq):
@@ -106,21 +107,12 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
     # Find in which of the two list the current extension belongs
     for i in (0, 1):
         for j, e in with_index(ext_dir[i][1]):  # Index 0 for the extension
-            if len(ext_dir[i]) == 2:
-                cur_ext = ext_dir[i][0][j]
-                wife_idx = (i + 1) % 2
-                wife_prefixes_to_remove = []
-                wife_exts = ext_dir[wife_idx][0]
-                wife_dirs = ext_dir[wife_idx][1]
-                wife_prefixes = []
-            else:
-                # Extended syntax
-                cur_ext = ext_dir[i][1][j]
-                wife_idx = (i + 1) % 2
-                wife_prefixes_to_remove = ext_dir[wife_idx][0]
-                wife_exts = ext_dir[wife_idx][1]
-                wife_dirs = ext_dir[wife_idx][2]
-                wife_prefixes = ext_dir[wife_idx][3]
+            cur_ext = ext_dir[i][0][j]
+            wife_idx = (i + 1) % 2
+            wife_prefixes_to_remove = []
+            wife_exts = ext_dir[wife_idx][0]
+            wife_dirs = ext_dir[wife_idx][1]
+            wife_prefixes = []
             cur_ext = cur_ext.strip()
             if not filename.endswith(cur_ext):
                 continue
@@ -188,6 +180,106 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
         log(INFO, "Cannot find wife file for {}, using the syntax '{}'.".format(filename, syntax))
 
 
+def extended_fast_switch(verbose_level, syntax, path, extended_settings):
+    global current_verbosity
+    current_verbosity = verbose_level
+
+    log(50, "")
+    log(50, "====")
+    log(1, "Analysing: {!r}, syntax: {!r}".format(path, syntax))
+    for extended_setting in extended_settings:
+        if syntax not in extended_setting['syntaxes']:
+            continue
+        log(50, "Selecting configuration for syntax {}: {!r}".format(syntax, extended_setting))
+        for way in ["first_way", "second_way"]:
+            log(100, "Way: {!r}".format(way))
+            my_extensions = extended_setting[way]['my_extensions']
+            my_prefixes = extended_setting[way]['my_prefixes']
+            wife_directories = extended_setting[way]['wife_directories']
+            wife_prefixes = extended_setting[way]['wife_prefixes']
+            wife_extensions = extended_setting[way]['wife_extensions']
+
+            log(100, "Extension matching: {!r}".format(my_extensions))
+
+            my_basename = os.path.basename(path)
+
+            found_ext = None
+            for ext in my_extensions:
+                ext = ext.strip()
+                if my_basename.endswith(ext):
+                    found_ext = ext
+                    break
+
+            if found_ext is None:
+                continue
+
+            log(100, "Prefix matching: {!r}".format(my_prefixes))
+
+            found_prefix = None
+            if my_prefixes:
+                for prefix in my_prefixes:
+                    prefix = prefix.strip()
+                    if my_basename.startswith(prefix):
+                        found_prefix = prefix
+                        break
+
+                if found_prefix is None:
+                    continue
+            else:
+                found_prefix = ""
+
+            log(10, "Selecting way '{}' for file '{}'".format(way, path))
+            log(50, "  my extension:", found_ext)
+            if found_prefix:
+                log(50, "  my prefix:", found_prefix)
+            log(50, "  wife directories:", wife_directories)
+            log(50, "  wife prefixes:", wife_prefixes)
+            log(50, "  wife extensions:", wife_extensions)
+
+            if not wife_prefixes:
+                # if not set, search with empty prefix (so only remove my prefix)
+                wife_prefixes = [""]
+
+            if not wife_directories:
+                # if not directory set, search in same directory
+                wife_directories = ["."]
+
+            if not wife_extensions:
+                # if no extension is specified, search the same extension
+                wife_extensions = [os.path.splitext(path)[1]]
+
+            for (wife_prefix,
+                 wife_relative_dir,
+                 wife_extension) in list(itertools.product(*[wife_prefixes,
+                                                             wife_directories,
+                                                             wife_extensions])):
+                log(60, "Searching wife of {!r} with prefix {!r} in directory {!r}"
+                    .format(path, wife_prefix, wife_relative_dir))
+                if wife_relative_dir == ".":
+                    wife_relative_dir = ""
+                if not wife_relative_dir and not wife_prefix and not wife_extension:
+                    # will find myself!
+                    continue
+                wife_dir = os.path.dirname(path)
+                if wife_relative_dir:
+                    wife_dir = os.path.join(wife_dir, wife_relative_dir)
+                wife_basename = my_basename
+                # Removing my prefix
+                if found_prefix:
+                    wife_basename = wife_basename[len(found_prefix):]
+                wife_basename = wife_basename[:-len(wife_extension)] + wife_extension
+                # Adding wife prefix
+                wife_basename = wife_prefix + wife_basename
+                wife_path = os.path.join(wife_dir, wife_basename)
+                wife_path = os.path.abspath(wife_path)
+                log(100, "File exists {!r}? {!r}".format(wife_path, os.path.exists(wife_path)))
+                if os.path.exists(wife_path):
+                    log(100, "Found wife: {!r}".format(wife_path))
+                    return wife_path
+
+    log(50, "====")
+
+
 class TestFastSwitch(unittest.TestCase):
 
     def setUp(self):
@@ -242,8 +334,8 @@ class TestFastSwitch(unittest.TestCase):
         [[".cpp"], ["../src"]],
         [[".h"],   ["../include"]]
     ]
-    # @unittest.skip("development ongoing")
 
+    # @unittest.skip("development ongoing")
     def test2_SrcHdrInTwoSibblingDirs1(self):
         wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                   "tests_db",
@@ -277,26 +369,28 @@ class TestFastSwitch(unittest.TestCase):
         [[".h"],   ["../include/@-1"]]
     ]
 
-    @unittest.skip("development ongoing")
+    # @unittest.skip("development ongoing")
     def test3_HdrInPackageDir1(self):
-        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                                  "tests_db",
-                                                                  "Test_3",
-                                                                  "foo",
-                                                                  "src",
-                                                                  "test3.cpp")),
+        wife = fast_switch(100, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_3",
+                                                        "foo",
+                                                        "src",
+                                                        "test3.cpp")),
                            self.specTest3)
         self.assertPathEqual(os.path.join("test_db", "Test_3", "foo", "include", "foo", "test3.h"),
                              wife)
 
     @unittest.skip("development ongoing")
     def test3_HdrInPackageDir2(self):
-        wife = fast_switch(100, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                                    "tests_db",
-                                                                    "Test_3",
-                                                                    "include",
-                                                                    "foo",
-                                                                    "test3.h")),
+        wife = fast_switch(100, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_3",
+                                                        "include",
+                                                        "foo",
+                                                        "test3.h")),
                            self.specTest3)
         self.assertPathEqual(os.path.join("test_db", "Test_3", "foo", "src", "test3.cpp"), wife)
 
@@ -316,10 +410,11 @@ class TestFastSwitch(unittest.TestCase):
 
     @unittest.skip("development ongoing")
     def test4_SrcHdrInComplexPackageDir(self):
-        wife = fast_switch(100, "C++", os.path.join(self.test_db,
-                                                    "Test_4",
-                                                    "src",
-                                                    "test4.cpp"),
+        wife = fast_switch(100, "C++",
+                           os.path.join(self.test_db,
+                                        "Test_4",
+                                        "src",
+                                        "test4.cpp"),
                            self.specTest4)
         self.assertPathEqual(os.path.join("test_db", "Test_4", "src", "test4.hpp"), wife)
 
@@ -337,28 +432,30 @@ class TestFastSwitch(unittest.TestCase):
         [["Spec.js"], ["../../test"]]
     ]
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test5_HdrInPublicJs1(self):
-        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                                  "tests_db",
-                                                                  "Test_5",
-                                                                  "foo",
-                                                                  "public",
-                                                                  "js",
-                                                                  "test5.js")),
+        wife = fast_switch(0, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_5",
+                                                        "foo",
+                                                        "public",
+                                                        "js",
+                                                        "test5.js")),
                            self.specTest5)
         self.assertPathEqual(os.path.join("test_db", "Test_5", "foo", "test", "test5Spec.js"),
                              wife)
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test5_HdrInPublicJs2(self):
-        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                                  "tests_db",
-                                                                  "Test_5",
-                                                                  "foo",
-                                                                  "test",
-                                                                  "test5Spec.js"
-                                                                  )),
+        wife = fast_switch(0, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_5",
+                                                        "foo",
+                                                        "test",
+                                                        "test5Spec.js"
+                                                        )),
                            self.specTest5)
         self.assertPathEqual(os.path.join("test_db", "Test_5", "foo", "public", "js", "test5.js"),
                              wife)
@@ -372,85 +469,98 @@ class TestFastSwitch(unittest.TestCase):
     # ls ./ => file.cpp
     # ./foo/test/test_file.cpp should switch to ./foo/file.cpp
     # ./foo/file.cpp should switch to ./foo/test/test_file.cpp
-    specTest6 = [
-        [
-                ["test_", "test"],
-                ["cpp"],
-                [".", ".."],
-                []
-        ],
-        [
-            [],
-            ["cpp"],
-            [".", "test", "tests"],
-            ["test_", "test"]
+    specTest6 = {
+        'extended': [
+            {
+                'syntaxes': ["C++"],
+                'first_way':{
+                    'my_prefixes': ["test_", "test"],
+                    'my_extensions': ["cpp"],
+                    'wife_directories': [".", ".."],
+                    'wife_prefixes': [],
+                    'wife_extensions': ['.cpp'],
+                },
+                'second_way':{
+                    'my_prefixes': [],
+                    'my_extensions': ["cpp"],
+                    'wife_directories': [".", "test", "tests"],
+                    'wife_prefixes': ["test_", "test"],
+                    'wife_extensions': ['.cpp'],
+                }
+            }
         ]
-    ]
+    }
 
     # @unittest.skip("development ongoing")
     def test6_ExtendedSyntaxWithPrefixForTest1(self):
-        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                                  "tests_db",
-                                                                  "Test_6",
-                                                                  "file.cpp")),
-                           self.specTest6)
+        wife = extended_fast_switch(0, "C++",
+                                    os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                 "tests_db",
+                                                                 "Test_6",
+                                                                 "file.cpp")),
+                                    self.specTest6['extended'])
         self.assertPathEqual(os.path.join("test_db", "Test_6",  "test", "test_file.cpp"),
                              wife)
 
     # @unittest.skip("development ongoing")
     def test6_ExtendedSyntaxWithPrefixForTest2(self):
-        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                                  "tests_db",
-                                                                  "Test_6",
-                                                                  "test",
-                                                                  "test_file.cpp"
-                                                                  )),
-                           self.specTest6)
+        wife = extended_fast_switch(0, "C++",
+                                    os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                 "tests_db",
+                                                                 "Test_6",
+                                                                 "test",
+                                                                 "test_file.cpp"
+                                                                 )),
+                                    self.specTest6['extended'])
         self.assertPathEqual(os.path.join("test_db", "Test_6", "file.cpp"),
                              wife)
 
     # Test 7
-    # "javascript": [
-    #    [["test_", "test"],["cpp"],[".", ".."],[]],
-    #    [[],["cpp"],[".", "test", "tests"],["test_", "test"]]
-    #  ],
-    # ls ./test => test_file.h
-    # ls ./ => file.cpp
-    # ./foo/test/test_file.cpp should switch to ./foo/file.cpp
-    # ./foo/file.cpp should switch to ./foo/test/test_file.cpp
-    specTest7 = [
-        [
-            [],
-            [".controller.js"],
-            ["."],
-            []
-        ],
-        [
-            [],
-            [".template.js"],
-            ["."],
-            []
+    # ls ./ => main.template.html, main.controller.js
+    # ./main.template.html => ./main.controller.js
+    # ./main.controller.js => ./main.template.html
+    specTest7 = {
+        'extended': [
+            {
+                'syntaxes': ["js", "html"],
+                'first_way':{
+                    'my_prefixes': [],
+                    'my_extensions': [".controller.js"],
+                    'wife_directories': ["."],
+                    'wife_prefixes': [],
+                    'wife_extensions': ['.template.html'],
+                },
+                'second_way':{
+                    'my_prefixes': [],
+                    'my_extensions': [".template.html"],
+                    'wife_directories': [],
+                    'wife_prefixes': [],
+                    'wife_extensions': ['.controller.js'],
+                }
+            }
         ]
-    ]
+    }
 
     # @unittest.skip("development ongoing")
     def test7_ExtendedSyntaxWithPrefixForTest1(self):
-        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                                  "tests_db",
-                                                                  "Test_7",
-                                                                  "main.controller.js")),
-                           self.specTest7)
-        self.assertPathEqual(os.path.join("test_db", "Test_7",  "main.template.js"),
+        wife = extended_fast_switch(0, "js",
+                                    os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                 "tests_db",
+                                                                 "Test_7",
+                                                                 "main.controller.js")),
+                                    self.specTest7['extended'])
+        self.assertPathEqual(os.path.join("test_db", "Test_7",  "main.template.html"),
                              wife)
 
     # @unittest.skip("development ongoing")
     def test7_ExtendedSyntaxWithPrefixForTest2(self):
-        wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                                  "tests_db",
-                                                                  "Test_7",
-                                                                  "main.template.js"
-                                                                  )),
-                           self.specTest7)
+        wife = extended_fast_switch(0, "html",
+                                    os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                 "tests_db",
+                                                                 "Test_7",
+                                                                 "main.template.html"
+                                                                 )),
+                                    self.specTest7['extended'])
         self.assertPathEqual(os.path.join("test_db", "Test_7", "main.controller.js"),
                              wife)
 

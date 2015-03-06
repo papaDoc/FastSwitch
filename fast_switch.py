@@ -11,7 +11,7 @@ import sublime_plugin
 from .lib.fastswitch import ERROR
 from .lib.fastswitch import INFO
 from .lib.fastswitch import WARNING
-from .lib.fastswitch import fast_switch
+from .lib.fastswitch import fast_switch, extended_fast_switch
 from .lib.fastswitch import log
 
 
@@ -60,7 +60,12 @@ class FastSwitchCommand(sublime_plugin.WindowCommand):
         wife = fast_switch(settings.get("verbosity", -1), syntax, path, ext_dir)
 
         if not wife:
-            return
+            extended_settings = settings.get("extended", {})
+            if not extended_settings:
+                return
+            wife = extended_fast_switch(settings.get("verbosity", -1), syntax, path, extended_settings)
+            if not wife:
+                return
 
         if (os.path.abspath(self.window.active_view().file_name()) ==
                 os.path.abspath(wife)):

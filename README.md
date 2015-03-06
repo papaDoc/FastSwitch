@@ -58,7 +58,8 @@ Here is an example of a setting:
 //      Ex: If you are currently in  c:\foo\src\bar\file.cpp the "include\." correspond to "include\bar"
 //      The "@d" means to replace the tag by the corresponding directory in path of the current file.
 //      d must be a negative number
-//      Ex: If you are currently in c:\foo\bar\src\file.cpp the "@-1" correspond to the directory "bar"
+//      Ex:
+//           If you are currently in c:\foo\bar\src\file.cpp the "@-1" correspond to the directory "bar"
 //
 // For the C++ syntax, I'm using the following
 "C++": [
@@ -236,5 +237,5 @@ Installation
 Use the unit test to validate your changes:
 
 ```
-    python lib/fastswitch.py
+python lib/fastswitch.py
 ```

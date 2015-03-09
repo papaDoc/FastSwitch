@@ -143,8 +143,8 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
                         cnt = 0
                         tail = ""
                         while head and head != os.path.sep and cnt < 10:
-                            log(50, "Head: \"%s\" tail: \"%s\" " % (head, tail))
                             (head, tail) = os.path.split(head)
+                            log(50, "Head: \"%s\" tail: \"%s\" " % (head, tail))
                             log(50, "Adding \"%s\" to dirs: \"%s\"" % (tail, dirs))
                             dirs.append(tail)
                             cnt = cnt + 1
@@ -165,7 +165,9 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
                         extensions.append('.' + wife_e if wife_e[0] != '.' else wife_e[1:])
                         for extension in extensions:
                             wife = os.path.join(path, name + extension)
+                            log(50, "Ici 1: wife\"%s\"" % { wife })
                             wife = os.path.abspath(wife)
+                            log(50, "Ici 2: wife\"%s\"" % { wife })
                             log(INFO, "Looking for wife file: %s" % wife)
                             if os.path.isfile(wife):
                                 log(INFO, "Found a wife file: %s" % wife)
@@ -250,6 +252,7 @@ def extended_fast_switch(verbose_level, syntax, path, extended_settings):
                     prefix = prefix.strip()
                     if my_basename.startswith(prefix):
                         found_prefix = prefix
+                        log(100, "Using {!r} for my_prefix".format(found_prefix))
                         break
 
                 if found_prefix is None:
@@ -420,12 +423,12 @@ class TestFastSwitch(unittest.TestCase):
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_3", "foo", "include", "foo", "test3.h"),
                              wife)
 
-    @unittest.skip("BROKEN USE CASE")
     def test3_HdrInPackageDir2(self):
-        wife = fast_switch(100, "C++",
+        wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
                                                         "Test_3",
+                                                        "foo",
                                                         "include",
                                                         "foo",
                                                         "test3.h")),
@@ -446,15 +449,29 @@ class TestFastSwitch(unittest.TestCase):
         [[".h"],   ["../include/@-2/."]]
     ]
 
-    @unittest.skip("BROKEN USE CASE")
-    def test4_SrcHdrInComplexPackageDir(self):
-        wife = fast_switch(100, "C++",
+    #@unittest.skip("BROKEN USE CASE")
+    def test4_SrcHdrInComplexPackageDir1(self):
+        wife = fast_switch(0, "C++",
                            os.path.join(self.test_db,
                                         "Test_4",
+                                        "foo",
                                         "src",
+                                        "bar",
                                         "test4.cpp"),
                            self.specTest4)
-        self.assertPathEqual(os.path.join("TESTS_DB", "Test_4", "src", "test4.hpp"), wife)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_4", "foo", "include", "foo", "bar", "test4.h"), wife)
+
+    def test4_SrcHdrInComplexPackageDir2(self):
+        wife = fast_switch(0, "C++",
+                           os.path.join(self.test_db,
+                                        "Test_4",
+                                        "foo",
+                                        "include",
+                                        "foo",
+                                        "bar",
+                                        "test4.h"),
+                           self.specTest4)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_4", "foo", "src", "bar", "test4.cpp"), wife)
 
     # Test 5
     # "javascript": [

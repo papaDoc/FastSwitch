@@ -94,10 +94,26 @@ def replace_index(orig, replacements):
     return orig
 
 
-def fast_switch(verbose_level, syntax, path, ext_dir):
+def has_prefix(filename, prefixes):
+    log(50, "has_prefix: start")
+    if prefixes:
+        log(50, "Ici 0")
+        for prefix in prefixes:
+            log(50, "Ici 0")
+            prefix = prefix.strip()
+            log(50, "Ici 1")
+            if filename.startswith(prefix):
+                log(100, "Using {!r} for my_prefix".format(prefix))
+                return prefix
+        return None
+    return ""
 
+
+def fast_switch(verbose_level, syntax, path, settings):
     global current_verbosity
     current_verbosity = verbose_level
+
+    log(98, "Syntax: {}, path: {}, settings: {!r}".format(syntax, path, settings))
 
     base, filename = os.path.split(path)
     log(50, "Base: {}, filename: {}".format(base, filename))
@@ -106,14 +122,49 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
     # - No work is done in advance everything is done when needed
     # Find in which of the two list the current extension belongs
     for i in (0, 1):
-        for j, e in with_index(ext_dir[i][0]):  # Index 0 for the extension
-            log(50, "Checking if file \"%s\" has extension \"%s\" " % (filename, ext_dir[i][0][j]))
-            if filename.endswith(ext_dir[i][0][j]):
-                log(50, "\"%s\" has extension \"%s\" " % (filename, ext_dir[i][0][j]))
+        for j, e in with_index(settings[i][0]):  # Index 0 for the extension
+            log(50, "Checking if file \"%s\" has extension \"%s\" " % (filename, settings[i][0][j]))
+            if filename.endswith(settings[i][0][j]):
+                log(50, "Ici 0")
+                husband_filename = filename
+                log(50, "Ici 0.1")
+                husband_ext = settings[i][0][j]
+                log(50, "Ici 0.2")
+                husband_basename = filename[:len(husband_ext)+1]
+                log(50, "Ici 0.3 basename; %s" % (husband_basename))
+
+                log(50, "\"%s\" has extension \"%s\" " % (husband_filename, husband_ext))
+                husband_prefix = [""]
+                log(50, "Ici 1")
+                if len(settings[i]) > 2 :
+                    log(50, "Ici 2 settings: %s" % (settings[i][2]))
+                    husband_prefix = ""
+                    if type(settings[i][2]) == type(dict()):
+                        log(50, "Ici 2.01 settings: %s" % (settings[i][2]['prefixes']))
+                        husband_prefixes = settings[i][2]['prefixes']
+                    else:
+                        log(50, "Ici 2.02")
+                        husband_prefixes = settings[i][2]
+
+                    log(50, "Ici 2.02")
+                    log(50, "The settings has prefixes \"{!r}\"".format(husband_prefixes))
+                    log(50, "Ici 2.1")
+                    husband_prefix = has_prefix(husband_filename, husband_prefixes)
+                    log(50, "Ici 3")
+                    if husband_prefix is None:
+                        log(50, "Ici 4")
+                        continue
+                    else:
+                        log(50, "Ici 5")
+                        log(50, "\"%s\" has prefix \"%s\" " % (husband_filename, husband_prefix))
+                        husband_basename = husband_basename[len(husband_prefix):]
+
+                log(50, "Husband: \"%s\" has prefix \"%s\", basename: \"%s\" and extension \"%s\"" % (husband_filename, husband_prefix, husband_basename, husband_ext))
+
                 wife_idx = (i + 1) % 2
-                wife_ext = ext_dir[wife_idx][0]
-                wife_dir = ext_dir[wife_idx][1]
-                name = re.sub(re.escape(ext_dir[i][0][j]) + '$', '', filename)
+                wife_ext = settings[wife_idx][0]
+                wife_dir = settings[wife_idx][1]
+
 
                 # Split the base since the current directory might be needed
                 # and because every is with respect to the base - last_dir
@@ -122,7 +173,7 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
 
                 log(INFO, "Looking for file \"%s\" with one of the following extension %s in one "
                     "of the sub directory %s in the path \"%s\"" % (
-                        name, wife_ext, wife_dir, splitted_base))
+                        husband_basename, wife_ext, wife_dir, splitted_base))
 
                 for d in wife_dir:
                     log(50, "Investigating directory: \"%s\"" % d)
@@ -160,11 +211,11 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
                     for wife_i, wife_e in with_index(wife_ext):
                         path = os.path.join(splitted_base, d)
                         log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\"" %
-                            (name, path, wife_e))
+                            (husband_basename, path, wife_e))
                         extensions = [wife_e]
                         extensions.append('.' + wife_e if wife_e[0] != '.' else wife_e[1:])
                         for extension in extensions:
-                            wife = os.path.join(path, name + extension)
+                            wife = os.path.join(path, husband_basename + extension)
                             log(50, "Ici 1: wife\"%s\"" % { wife })
                             wife = os.path.abspath(wife)
                             log(50, "Ici 2: wife\"%s\"" % { wife })
@@ -175,7 +226,7 @@ def fast_switch(verbose_level, syntax, path, ext_dir):
 
     else:
         log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
-            (filename, ext_dir[0][0], ext_dir[1][0], syntax))
+            (filename, settings[0][0], settings[1][0], syntax))
 
 
 def filter_directory(wife_dir, path):
@@ -341,19 +392,19 @@ class TestFastSwitch(unittest.TestCase):
     # ./foo/src/test1.hpp should switch to ./src/test1.cpp
     specTest1 = [
         [[".cpp"], ["."]],
-        [[".hpp"],  ["."]]
+        [[".hpp"], ["."]]
     ]
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test1_SrcHdrInSameDir1(self):
-        wife = fast_switch(0, "C++", os.path.join(self.test_db,
+        wife = fast_switch(100, "C++", os.path.join(self.test_db,
                                                   "Test_1",
                                                   "src",
                                                   "test1.cpp"),
                            self.specTest1)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.hpp"), wife)
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test1_SrcHdrInSameDir2(self):
         wife = fast_switch(0, "C++", os.path.join(self.test_db,
                                                   "Test_1",
@@ -361,6 +412,73 @@ class TestFastSwitch(unittest.TestCase):
                                                   "test1.hpp"),
                            self.specTest1)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.cpp"), wife)
+
+
+
+    # Test 1 husband_extended
+    #  "C++": [
+    #             [ [".cpp"], ["."] [""]],
+    #             [ ["hpp"],  ["."] ]
+    #           ]
+    # ls ./foo/src => test1.cpp, test1.hpp
+    # ./foo/src/test1.cpp should switch to ./src/test1.hpp
+    # ./foo/src/test1.hpp should switch to ./src/test1.cpp
+    specTest1 = [
+        [[".cpp"], ["."], [""]],
+        [[".hpp"], ["."]]
+    ]
+
+    # @unittest.skip("development ongoing")
+    def test1_husband_extended_1(self):
+        wife = fast_switch(100, "C++", os.path.join(self.test_db,
+                                                  "Test_1",
+                                                  "src",
+                                                  "test1.cpp"),
+                           self.specTest1)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.hpp"), wife)
+
+    @unittest.skip("development ongoing")
+    def test1_husband_extended_2(self):
+        wife = fast_switch(0, "C++", os.path.join(self.test_db,
+                                                  "Test_1",
+                                                  "src",
+                                                  "test1.hpp"),
+                           self.specTest1)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.cpp"), wife)
+
+
+    # Test 1 husband_extended_dict
+    #  "C++": [
+    #             [ [".cpp"], ["."], [{"prefixes":[""]}]],
+    #             [ ["hpp"],  ["."] ]
+    #           ]
+    # ls ./foo/src => test1.cpp, test1.hpp
+    # ./foo/src/test1.cpp should switch to ./src/test1.hpp
+    # ./foo/src/test1.hpp should switch to ./src/test1.cpp
+    specTest1 = [
+        [[".cpp"], ["."], {"prefixes":[""]} ],
+        [[".hpp"], ["."]]
+    ]
+
+    # @unittest.skip("development ongoing")
+    def test1_husband_extended_dict_1(self):
+        wife = fast_switch(100, "C++", os.path.join(self.test_db,
+                                                  "Test_1",
+                                                  "src",
+                                                  "test1.cpp"),
+                           self.specTest1)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.hpp"), wife)
+
+    @unittest.skip("development ongoing")
+    def test1_husband_extended_2(self):
+        wife = fast_switch(0, "C++", os.path.join(self.test_db,
+                                                  "Test_1",
+                                                  "src",
+                                                  "test1.hpp"),
+                           self.specTest1)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.cpp"), wife)
+
+
 
     # Test 2
     #  "C++": [
@@ -376,7 +494,7 @@ class TestFastSwitch(unittest.TestCase):
         [[".h"],   ["include"]]
     ]
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test2_SrcHdrInTwoSibblingDirs1(self):
         wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                   "tests_db",
@@ -386,7 +504,7 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest2)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_2", "include", "test2.h"), wife)
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test2_SrcHdrInTwoSibblingDirs2(self):
         wife = fast_switch(0, "C++", os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                   "tests_db",
@@ -410,7 +528,7 @@ class TestFastSwitch(unittest.TestCase):
         [[".h"],   ["include/@-1"]]
     ]
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test3_HdrInPackageDir1(self):
         wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -422,7 +540,7 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest3)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_3", "foo", "include", "foo", "test3.h"),
                              wife)
-
+    @unittest.skip("development ongoing")
     def test3_HdrInPackageDir2(self):
         wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -449,7 +567,7 @@ class TestFastSwitch(unittest.TestCase):
         [[".h"],   ["../include/@-2/."]]
     ]
 
-    #@unittest.skip("BROKEN USE CASE")
+    @unittest.skip("development ongoing")
     def test4_SrcHdrInComplexPackageDir1(self):
         wife = fast_switch(0, "C++",
                            os.path.join(self.test_db,
@@ -461,6 +579,7 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest4)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_4", "foo", "include", "foo", "bar", "test4.h"), wife)
 
+    @unittest.skip("development ongoing")
     def test4_SrcHdrInComplexPackageDir2(self):
         wife = fast_switch(0, "C++",
                            os.path.join(self.test_db,
@@ -487,7 +606,7 @@ class TestFastSwitch(unittest.TestCase):
         [["Spec.js"], ["../test"]]
     ]
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test5_HdrInPublicJs1(self):
         wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -501,7 +620,7 @@ class TestFastSwitch(unittest.TestCase):
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_5", "foo", "test", "test5Spec.js"),
                              wife)
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test5_HdrInPublicJs2(self):
         wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -516,8 +635,8 @@ class TestFastSwitch(unittest.TestCase):
                              wife)
 
     # Test 6
-    # ./foo/test/test_file.cpp should switch to ./foo/file.cpp
-    # ./foo/file.cpp should switch to ./foo/test/test_file.cpp
+    # ./foo/test/test_file.cpp should switch to ./foo/test6.cpp
+    # ./foo/file.cpp should switch to ./foo/test/test_test6.cpp
     specTest6 = {
         'extended': [
             {
@@ -541,28 +660,61 @@ class TestFastSwitch(unittest.TestCase):
         ]
     }
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test6_ExtendedSyntax_WithPrefixForTest1(self):
         wife = extended_fast_switch(0, "C++",
                                     os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                  "tests_db",
                                                                  "Test_6",
-                                                                 "file.cpp")),
+                                                                 "test6.cpp")),
                                     self.specTest6['extended'])
-        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6",  "test", "test_file.cpp"),
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6",  "test", "test_test6.cpp"),
                              wife)
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test6_ExtendedSyntax_WithPrefixForTest2(self):
         wife = extended_fast_switch(0, "C++",
                                     os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                                  "tests_db",
                                                                  "Test_6",
                                                                  "test",
-                                                                 "test_file.cpp"
+                                                                 "test_test6.cpp"
                                                                  )),
                                     self.specTest6['extended'])
-        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "file.cpp"),
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "test6.cpp"),
+                             wife)
+
+
+    # Test 6
+    # ./foo/test/test_file.cpp should switch to ./foo/test6.cpp
+    # ./foo/file.cpp should switch to ./foo/test/test_test6.cpp
+    specTest6 = {
+                  [ [".cpp"], [".", ".."], { "prefixes": [""]} ],
+                  [ [".cpp"], [".", "test", "tests"], { "prefixes": ["test_"] } ]
+                }
+
+    #@unittest.skip("development ongoing")
+    def test6_ExtendedSyntax_WithPrefixForTest1(self):
+        wife = extended_fast_switch(99, "C++",
+                                    os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                 "tests_db",
+                                                                 "Test_6",
+                                                                 "test.cpp")),
+                                    self.specTest6)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6",  "test", "test_test6.cpp"),
+                             wife)
+
+    @unittest.skip("development ongoing")
+    def test6_ExtendedSyntax_WithPrefixForTest2(self):
+        wife = extended_fast_switch(99, "C++",
+                                    os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                                 "tests_db",
+                                                                 "Test_6",
+                                                                 "test",
+                                                                 "test_test6.cpp"
+                                                                 )),
+                                    self.specTest6)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "test6.cpp"),
                              wife)
 
     # Test 7
@@ -598,7 +750,7 @@ class TestFastSwitch(unittest.TestCase):
         ]
     }
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test7_ExtendedSyntax_WithPrefixForTest1(self):
         wife = extended_fast_switch(0, "js",
                                     os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -609,7 +761,7 @@ class TestFastSwitch(unittest.TestCase):
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_7",  "main.template.html"),
                              wife)
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test7_ExtendedSyntax_WithPrefixForTest2(self):
         wife = extended_fast_switch(0, "html",
                                     os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -623,7 +775,7 @@ class TestFastSwitch(unittest.TestCase):
                                           "main.service.js"),
                              wife)
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test7_ExtendedSyntax_WithPrefixForTest3(self):
         wife = extended_fast_switch(0, "html",
                                     os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -664,7 +816,7 @@ class TestFastSwitch(unittest.TestCase):
         ]
     }
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test8_ExtendedSyntax_SrcHdrInComplexPackageDir1(self):
         wife = extended_fast_switch(0, "C++",
                                     os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -686,7 +838,7 @@ class TestFastSwitch(unittest.TestCase):
                                           ),
                              wife)
 
-    # @unittest.skip("development ongoing")
+    @unittest.skip("development ongoing")
     def test8_ExtendedSyntax_SrcHdrInComplexPackageDir2(self):
         wife = extended_fast_switch(0, "C++",
                                     os.path.abspath(os.path.join(os.path.dirname(__file__),

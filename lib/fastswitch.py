@@ -93,6 +93,18 @@ def replace_index(orig, replacements):
         cnt = cnt + 1
     return orig
 
+def get_prefixes(idx, settings):
+    prefixes = [""]
+    if len(settings[idx]) > 2 :
+        log(50, "get_prefixes: Ici 2 settings: %s" % (settings[idx][2]))
+        if type(settings[idx][2]) == type(dict()):
+            log(50, "get_prefixes: Ici 2.01 settings: %s" % (settings[idx][2]['prefixes']))
+            prefixes = settings[idx][2]['prefixes']
+        else:
+            log(50, "get_prefixes: Ici 2.02")
+            prefixes = settings[idx][2]
+    return prefixes
+
 
 def has_prefix(filename, prefixes):
     log(50, "has_prefix: start")
@@ -108,6 +120,84 @@ def has_prefix(filename, prefixes):
         return None
     return ""
 
+def has_extension(filename, extensions):
+    """
+    Return the extension of the filename if it is one of the extensions or None
+    """
+    log(50, "has_extension: start")
+    if extensions:
+        for ext in extensions:
+            ext = ext.strip()
+            if my_basename.endswith(ext):
+                return ext
+    return None
+
+
+def find_index(filename, settings):
+    """
+    Find the index of the setting to which the filename belongs
+    Find the first settings iteration for which a prefix and an extension matches
+    return a tuple [idx, ext, prefix] the index is -1 if not found
+    """
+    nb_transition = len(settings)
+    for i in range(nb_transition):
+        log(50, "find_index: Starting: %d, current: %d" % (starting_idx, i))
+        extensions = setting[i][0]
+        ext = has_extension(filename, extensions)
+        if ext is not None:
+            prefixes = get_prefixes(i, settings)
+            if len(settings[i]) > 2 :
+                log(50, "find_index: Ici 2 settings: %s" % (settings[i][2]))
+                if type(settings[i][2]) == type(dict()):
+                    log(50, "find_index: Ici 2.01 settings: %s" % (settings[i][2]['prefixes']))
+                    prefixes = settings[i][2]['prefixes']
+                else:
+                    log(50, "find_index: Ici 2.02")
+                    prefixes = settings[i][2]
+            prefix = has_prefix(filename, prefixes)
+            if prefix is not None:
+                return [i, ext, prefix]
+    return [-1, None, None]
+
+
+
+def filter_directory(wife_dir, path):
+    # RR do we rellay need this ????? path = os.path.dirname(path)
+
+    # special handling for windows path => replace "/" (from conf) by \\
+    if sys.platform == "win32":
+        wife_dir = wife_dir.replace("/", os.path.sep)
+    else:
+        wife_dir = wife_dir.replace("\\", os.path.sep)
+
+    log(100, "Magic filter for wife {!r}, from path {!r}".format(wife_dir, path))
+    parts = path.split(os.path.sep)
+    parts.reverse()
+
+    exploded_wife_path = wife_dir.split(os.path.sep)
+    log(100, "  exploded_wife_path", exploded_wife_path)
+    pattern = re.compile(r"@(-[0-9]+|0)")
+    reconstructed_wife = []
+    for d in exploded_wife_path:
+        m = pattern.match(d)
+        if d == ".":
+            idx = 0
+            log(100, "{!r} matches {}, which is {!r}".format(d, idx, parts[idx]))
+            reconstructed_wife.append(parts[idx])
+        elif m:
+            idx = -(int(m.group(1)))
+            log(100, "{!r} matches {}, which is {!r}".format(e, -idx, parts[idx]))
+            reconstructed_wife.append(parts[idx])
+        else:
+            reconstructed_wife.append(d)
+    # cannot use os.path.join since it will not handle the first element "" correctly
+    # ("/a/b" is splitted into ["", "a", "b"])
+    reconstructed_wife = os.path.sep.join(reconstructed_wife)
+    reconstructed_wife = os.path.abspath(reconstructed_wife)
+    log(100, "reconstructed_wife", reconstructed_wife)
+    return reconstructed_wife
+
+
 
 def fast_switch(verbose_level, syntax, path, settings):
     global current_verbosity
@@ -118,150 +208,56 @@ def fast_switch(verbose_level, syntax, path, settings):
     base, filename = os.path.split(path)
     log(50, "Base: {}, filename: {}".format(base, filename))
 
+    nb_transition = len(settings)
     # Start working on finding the wife of the current file
     # - No work is done in advance everything is done when needed
     # Find in which of the two list the current extension belongs
-    for i in (0, 1):
-        for j, e in with_index(settings[i][0]):  # Index 0 for the extension
-            log(50, "Checking if file \"%s\" has extension \"%s\" " % (filename, settings[i][0][j]))
-            if filename.endswith(settings[i][0][j]):
-                log(50, "Ici 0")
-                husband_filename = filename
-                log(50, "Ici 0.1")
-                husband_ext = settings[i][0][j]
-                log(50, "Ici 0.2")
-                husband_basename = filename[:len(husband_ext)+1]
-                log(50, "Ici 0.3 basename; %s" % (husband_basename))
 
-                log(50, "\"%s\" has extension \"%s\" " % (husband_filename, husband_ext))
-                husband_prefix = [""]
-                log(50, "Ici 1")
-                if len(settings[i]) > 2 :
-                    log(50, "Ici 2 settings: %s" % (settings[i][2]))
-                    husband_prefix = ""
-                    if type(settings[i][2]) == type(dict()):
-                        log(50, "Ici 2.01 settings: %s" % (settings[i][2]['prefixes']))
-                        husband_prefixes = settings[i][2]['prefixes']
-                    else:
-                        log(50, "Ici 2.02")
-                        husband_prefixes = settings[i][2]
+    husband_idx, husband_ext, husban_prefix = find_index(filename, settings)
+    if husband_idx != -1:
+        husband_basename = filename[:len(husband_ext)+1]
+        husband_basename = husband_basename[len(husband_prefix):]
 
-                    log(50, "Ici 2.02")
-                    log(50, "The settings has prefixes \"{!r}\"".format(husband_prefixes))
-                    log(50, "Ici 2.1")
-                    husband_prefix = has_prefix(husband_filename, husband_prefixes)
-                    log(50, "Ici 3")
-                    if husband_prefix is None:
-                        log(50, "Ici 4")
-                        continue
-                    else:
-                        log(50, "Ici 5")
-                        log(50, "\"%s\" has prefix \"%s\" " % (husband_filename, husband_prefix))
-                        husband_basename = husband_basename[len(husband_prefix):]
+        log(50, "Index: \"%d\"" Husband: \"%s\" has prefix \"%s\", basename: \"%s\" and extension \"%s\"" % (husband_idx, husband_filename, husband_prefix, husband_basename, husband_ext))
 
-                log(50, "Husband: \"%s\" has prefix \"%s\", basename: \"%s\" and extension \"%s\"" % (husband_filename, husband_prefix, husband_basename, husband_ext))
+        for wife_idx in range(husband_idx, nb_transition+husband_idx):
+            wife_idx = (i + 1) % nb_transition
+            wife_extensions = settings[wife_idx][0]
+            wife_directories = settings[wife_idx][1]
+            wife_prefixes = get_prefixes(wife_idx, settings)
 
-                wife_idx = (i + 1) % 2
-                wife_ext = settings[wife_idx][0]
-                wife_dir = settings[wife_idx][1]
+            log(50, "Index: \"%d\" Wife: extensions: %s directories:%s" % (wife_idx, wife_extensions, wife_directories, wife_prefixes))
 
 
-                # Split the base since the current directory might be needed
-                # and because every is with respect to the base - last_dir
-                splitted_base, last_dir = os.path.split(base)
-                log(50, "Splitted base: %s   last dir: %s" % (splitted_base, last_dir))
+            # Split the base since the current directory might be needed
+            # and because every is with respect to the base - last_dir
+            splitted_base, last_dir = os.path.split(base)
+            log(50, "Splitted base: %s   last dir: %s" % (splitted_base, last_dir))
 
-                log(INFO, "Looking for file \"%s\" with one of the following extension %s in one "
-                    "of the sub directory %s in the path \"%s\"" % (
-                        husband_basename, wife_ext, wife_dir, splitted_base))
+            log(INFO, "Looking for file \"%s\" with one of the following extensions %s in one "
+                      "of the sub directories %s with one of the prefixes %s in the path \"%s\"" % (
+                      husband_basename, wife_extensions, wife_directories, wife_extensions, splitted_base))
 
-                for d in wife_dir:
-                    log(50, "Investigating directory: \"%s\"" % d)
-                    if "." in d:
-                        log(INFO, "Might need to replace the current directory indicator \".\" "
-                            "by \"%s\" in \"%s\"  " % (
-                                last_dir, d))
-                        d = replace_current_directory(d, last_dir)
-                        log(50, "The new directory: \"%s\"" % d)
+            wife_dir = filter_directory(wife_dir, base)
+            log(50, "The investigation wife directory with everything replaced: \"%s\"" % wife_dir)
 
-                    # Need to replace the special caracter with the appropriate directory in the
-                    # husband's file path
-                    if "@" in d:
-                        log(50, "There is a \"@\" in directory \"%s\" need to split the path \"%s\" " %
-                            (d, splitted_base))
-                        dirs = []
-                        head = splitted_base
-                        cnt = 0
-                        tail = ""
-                        while head and head != os.path.sep and cnt < 10:
-                            (head, tail) = os.path.split(head)
-                            log(50, "Head: \"%s\" tail: \"%s\" " % (head, tail))
-                            log(50, "Adding \"%s\" to dirs: \"%s\"" % (tail, dirs))
-                            dirs.append(tail)
-                            cnt = cnt + 1
+            path = os.path.join(splitted_base, wife_dir)
+            for wife_ext in wife_extensions:
+                wife_ext = ('.' + wife_e if wife_e[0] != '.' else wife_e[1:])
+                for wife_prefix in wife_prefixes:
+                    log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\" and prefix \%s\"" %
+                            (husband_basename, path, wife_ext, wife_prefix))
+                    wife = os.path.join(path, wife_prefix + husband_basename + wife_ext)
+                    log(50, "Ici 1: wife\"%s\"" % { wife })
+                    wife = os.path.abspath(wife)
+                    log(50, "Ici 2: wife\"%s\"" % { wife })
+                    log(INFO, "Looking for wife file: %s" % wife)
+                    if os.path.isfile(wife):
+                        log(INFO, "Found a wife file: %s" % wife)
+                        return wife
 
-                        dirs.reverse()
-                        log(50, "The component of the path: %s" % dirs)
-                        log(INFO, "Might need to replace the \"@index\" in \"%s\" by one of the following %s" %
-                            (d, dirs))
-                        d = replace_index(d, dirs)
-                        log(50, "The new directory: \"%s\"" % d)
-
-                    log(50, "The investigation directory with everything replaced: \"%s\"" % d)
-                    for wife_i, wife_e in with_index(wife_ext):
-                        path = os.path.join(splitted_base, d)
-                        log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\"" %
-                            (husband_basename, path, wife_e))
-                        extensions = [wife_e]
-                        extensions.append('.' + wife_e if wife_e[0] != '.' else wife_e[1:])
-                        for extension in extensions:
-                            wife = os.path.join(path, husband_basename + extension)
-                            log(50, "Ici 1: wife\"%s\"" % { wife })
-                            wife = os.path.abspath(wife)
-                            log(50, "Ici 2: wife\"%s\"" % { wife })
-                            log(INFO, "Looking for wife file: %s" % wife)
-                            if os.path.isfile(wife):
-                                log(INFO, "Found a wife file: %s" % wife)
-                                return wife
-
-    else:
-        log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
+    log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
             (filename, settings[0][0], settings[1][0], syntax))
-
-
-def filter_directory(wife_dir, path):
-    path = os.path.dirname(path)
-    # special handling for windows path => replace "/" (from conf) by \\
-    if sys.platform == "win32":
-        wife_dir = wife_dir.replace("/", "\\")
-    log(100, "Magic filter for wife {!r}, from path {!r}".format(wife_dir, path))
-    parts = path.split(os.path.sep)
-    parts.reverse()
-
-    exploded_wife_path = wife_dir.split(os.path.sep)
-    log(100, "  exploded_wife_path", exploded_wife_path)
-    pattern = re.compile(r"@(-[0-9]+|0)")
-    reconstructed_wife = []
-    for e in exploded_wife_path:
-        m = pattern.match(e)
-        if e == ".":
-            inc = 0
-            log(100, "{!r} matches {}, which is {!r}".format(e, -inc, parts[inc]))
-            reconstructed_wife.append(parts[inc])
-        elif m:
-            inc = m.group(1)
-            inc = -(int(inc))
-            log(100, "{!r} matches {}, which is {!r}".format(e, -inc, parts[inc]))
-            reconstructed_wife.append(parts[inc])
-        else:
-            reconstructed_wife.append(e)
-    # cannot use os.path.join since it will not handle the first element "" correctly
-    # ("/a/b" is splitted into ["", "a", "b"])
-    reconstructed_wife = os.path.sep.join(reconstructed_wife)
-    reconstructed_wife = os.path.abspath(reconstructed_wife)
-    log(100, "reconstructed_wife", reconstructed_wife)
-    return reconstructed_wife
-
 
 def extended_fast_switch(verbose_level, syntax, path, extended_settings):
     global current_verbosity

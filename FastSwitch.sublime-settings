@@ -42,52 +42,23 @@
 	//   }]
 
 	"C++": [
-		[
-			[".cpp"],
-			["src"]
-		],
-		[
-			["hpp"],
-			["."]
-		]
-	],
-	"extended": [{
-		"syntaxes": ["JavaScript", "HTML"],
-		"transitions": [{
-			"my_prefixes": [],
-			"my_extensions": [".controller.js"],
-			"wife_directories": ["."],
-			"wife_prefixes": [],
-			"wife_extensions": [".template.html", ".service.js"],
-		}, {
-			"my_prefixes": [],
-			"my_extensions": [".template.html"],
-			"wife_directories": [],
-			"wife_prefixes": [],
-			"wife_extensions": [".service.js", ".controller.js"],
-		}, {
-			"my_prefixes": [],
-			"my_extensions": [".service.js"],
-			"wife_directories": [],
-			"wife_prefixes": [],
-			"wife_extensions": [".controller.js", ".template.html"],
-		}],
-	}, {
-		"syntaxes": ["Python"],
-		"transitions": [{
-			"my_prefixes": ["test_", "test"],
-			"my_extensions": [".py"],
-			"wife_directories": [".", ".."],
-			"wife_prefixes": [],
-			"wife_extensions": [".py"],
-		}, {
-			"my_prefixes": [],
-			"my_extensions": [".py"],
-			"wife_directories": [".", "test", "tests"],
-			"wife_prefixes": ["test_", "test"],
-			"wife_extensions": [".py"],
-		}]
-	}],
+		     [ [".cpp"], [".", "src"] ],
+		     [ ["hpp"],	[".", "include"] ]
+	       ],
+	"JavaScript": [
+	                [ [".controller.js"], ["."] ],
+	                [ [".template.html"], ["."] ],
+	                [ [".service.js"],    ["."] ]
+	              ],
+    "HTML": [
+	          [ [".controller.js"], ["."] ],
+	          [ [".template.html"], ["."] ],
+	          [ [".service.js"],    ["."] ]
+	        ],
+	"Python": [
+	            [[".py"], [".", ".."]],
+	            [[".py"], [".", "./test", "./tests"], {"prefixes":["test_", "test"]}]
+	          ],
 	// As the value of the Verbosity increase more messages will be printed
 	// -1: Nothing logged
 	//  0: Error messages are printed

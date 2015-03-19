@@ -156,6 +156,84 @@ when in the following file: ./foo/include/foo/bar/toto.hpp it will switch to ./f
 Example 5:
 With the following setting:
 ```
+ "Javascript": [
+                 [[".js"], ["public/js"]],
+                 [["Spec.js"], ["../test"]]
+               ]
+'''
+and with the following directories containing the given file:
+ls ./foo/public/js => test5.js
+ls ./foo/test => test5Spec.js
+when in the following file ./foo/public/js/test5.js it will switch to ./foo/test/test5Spec.js
+when in the following file ./foo/test/test5Spec.js it will switch to ./foo/public/js/test5.js
+
+Example 6:
+With the following settings:
+'''
+"C++":[
+        [[".py"], [".", "..", ""] ],
+        [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}]
+      ]
+'''
+and with the following directories containing the given file:
+ls ./Test6 => test6.cpp
+ls ./Test6/test => test_test6.cpp
+when in the following file ./Test6/test6.cpp it will switch to ./Test6/test/test_test6.cpp
+when in the following file ./Test6/test/test_test6.cpp it will switch to ./Test6/test6.cpp
+
+Example 7:
+With the following settings:
+'''
+"Javascript": [
+                [[".controller.js"], ["."]],
+                [[".template.html"], ["."]],
+                [[".service.js"], ["."]]
+              ],
+"HTML": [
+          [[".template.html"], ["."]],
+          [[".service.js"], ["."]],
+          [[".controller.js"], ["."]],
+        ]
+'''
+and with the following directory containing the given files:
+ls ./Test7 => test7_A.controller.js test7_A.service.js test7_A.template.html test7_B.controller.js test7_B.service.js
+when in the following file ./Test7/test7_A.controller.js it will switch to ./Test7/test7_A.template.html
+when in the following file ./Test7/test7_A.template.html it will switch to ./Test7/test7_A.service.js
+when in the following file ./Test7/test7_A.service.js it will switch to ./Test7/test7_A.controller.js
+when in the following file ./Test7/test7_B.controller.js it will switch to ./Test7/test7_B.service.js
+when in the following file ./Test7/test7_B.service.js it will switch to ./Test7/test7_B.controller.js
+
+Example 8:
+With the following settings:
+'''
+"C++": [
+         [[".cpp"],       ["../../src/."],       {"prefixes":[""]}],
+         [[".h", ".hpp"], ["../include/@-2/@0"], {"prefixes":[""]}]
+       ]
+'''
+and with the following directories containing the given file:
+ls ./Test_8/foo/src/bar => test8_A.cpp test8_B.cpp
+ls ./Test_8/foo/include/foo/bar/ => test8_A.h test8_B.hpp
+when in the following file: ./Test_8/foo/src/bar/test8.cpp it will switch to ./foo/include/foo/bar/test8.h
+when in the following file: ./Test_8/foo/include/foo/bar/test8.h it will switch to ./foo/src/bar/test8.cpp
+
+
+
+
+when in the following file ./Test6/test/test_test6.cpp it will switch to ./Test6/test6.cpp
+
+    # ./main.template.html => ./main.controller.js
+    # ./main.controller.js => ./main.template.html
+
+
+
+
+
+
+
+
+
+
 "extended": [{
     "syntaxes": ["Python"],
     "transitions": [{

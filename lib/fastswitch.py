@@ -561,13 +561,13 @@ class TestFastSwitch(unittest.TestCase):
 
 
     # Test 6 Inverted
-    # ./foo/test/test_file.cpp should switch to ./foo/test6.cpp
-    # ./foo/file.cpp should switch to ./foo/test/test_test6.cpp
+    # ./foo/test/test_file.py should switch to ./foo/test6.py
+    # ./foo/file.py should switch to ./foo/test/test_test6.py
     # Inverse the order in the settings of test 6
 
     specTest6 = [
-                  [['.cpp'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}],
-                  [[".cpp"], [".", ""] ]
+                  [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}],
+                  [[".py"], [".", ""] ]
                 ]
 
     #@unittest.skip("development ongoing")
@@ -576,9 +576,9 @@ class TestFastSwitch(unittest.TestCase):
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
                                                         "Test_6",
-                                                        "test6.cpp")),
+                                                        "test6.py")),
                            self.specTest6)
-        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6",  "test", "test_test6.cpp"),
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6",  "test", "test_test6.py"),
                              wife)
 
     #@unittest.skip("development ongoing")
@@ -588,16 +588,16 @@ class TestFastSwitch(unittest.TestCase):
                                                         "tests_db",
                                                         "Test_6",
                                                         "test",
-                                                        "test_test6.cpp")),
+                                                        "test_test6.py")),
                            self.specTest6)
-        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "test6.cpp"),
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "test6.py"),
                              wife)
 
 
     # Test 7
     # ls ./ => main.template.html, main.controller.js
-    # ./main.template.html => ./main.controller.js
-    # ./main.controller.js => ./main.template.html
+    # ./test7_A.template.html => ./test7_A.controller.js
+    # ./test7_A.controller.js => ./test7_A.template.html
     specTest7 = [
                   [[".controller.js"], ["."]],
                   [['.template.html'], ["."]],
@@ -610,9 +610,9 @@ class TestFastSwitch(unittest.TestCase):
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
                                                         "Test_7",
-                                                        "main.controller.js")),
+                                                        "test7_A.controller.js")),
                            self.specTest7)
-        self.assertPathEqual(os.path.join("TESTS_DB", "Test_7",  "main.template.html"),
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_7",  "test7_A.template.html"),
                              wife)
 
     #@unittest.skip("development ongoing")
@@ -621,11 +621,11 @@ class TestFastSwitch(unittest.TestCase):
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
                                                         "Test_7",
-                                                        "main.template.html")),
+                                                        "test7_A.template.html")),
                            self.specTest7)
         self.assertPathEqual(os.path.join("TESTS_DB",
                                           "Test_7",
-                                          "main.service.js"),
+                                          "test7_A.service.js"),
                              wife)
 
     #@unittest.skip("development ongoing")
@@ -634,11 +634,35 @@ class TestFastSwitch(unittest.TestCase):
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
                                                         "Test_7",
-                                                        "main.service.js")),
+                                                        "test7_A.service.js")),
                            self.specTest7)
         self.assertPathEqual(os.path.join("TESTS_DB",
                                           "Test_7",
-                                          "main.controller.js"),
+                                          "test7_A.controller.js"),
+                             wife)
+
+
+    def test7_B_ExtendedSyntax_WithPrefixForTest1(self):
+        wife = fast_switch(0, "js",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_7",
+                                                        "test7_B.controller.js")),
+                           self.specTest7)
+        self.assertPathEqual(os.path.join("TESTS_DB", "Test_7",  "test7_B.service.js"),
+                             wife)
+
+    #@unittest.skip("development ongoing")
+    def test7_B_ExtendedSyntax_WithPrefixForTest2(self):
+        wife = fast_switch(0, "js",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_7",
+                                                        "test7_B.service.js")),
+                           self.specTest7)
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_7",
+                                          "test7_B.controller.js"),
                              wife)
 
     # Test 8 (use file from Test 4)

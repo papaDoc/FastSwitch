@@ -16,7 +16,7 @@ Here is an example of a setting:
 // N.B. The "syntax_X" must be the string found in the lower right corner if the SublimeText 2/3
 // Example: "Plain Text", "C++". "Python", "Markdown"
 //
-// With the above settings when in mode_X (Ex C++) and you are currently in the file:
+// With the above settings when in syntax_X (Ex C++) and you are currently in the file:
 //     .../foo/bar/directory_A1/file.ext_A1
 //
 // using the fastswitch pluging then the pluging will try to open the file:
@@ -27,32 +27,6 @@ Here is an example of a setting:
 //
 // The first existing file will be openned so the order is important.
 //
-//   "extended": [{
-//          "syntaxes": ["mode_X", "mode_Y"],
-//          "transitions": [{
-//              "my_prefixes": [],
-//              "my_extensions": [".ext_A"],
-//              "wife_directories": ["."],
-//              "wife_prefixes": [],
-//              "wife_extensions": [".ext_B", ".ext_C"],
-//          }, {
-//              "my_prefixes": [],
-//              "my_extensions": [".ext_B"],
-//              "wife_directories": [],
-//              "wife_prefixes": [],
-//              "wife_extensions": [".extC", ".ext_A"],
-//          }, {
-//              "my_prefixes": [],
-//              "my_extensions": [".extC"],
-//              "wife_directories": [],
-//              "wife_prefixes": [],
-//              "wife_extensions": [".ext_A", ".ext_B"],
-//          }]
-//      }, {
-//
-//          ...
-//
-//   }]
 //
 // N.B. The "." will be replaced by the current directory
 //      Ex: If you are currently in  c:\foo\src\bar\file.cpp the "include\." correspond to "include\bar"
@@ -84,7 +58,7 @@ using the FastSwitch pluging, the pluging will try to open the file:
   * .../foo/bar/src/file.cpp
 
 
-The following examples are using the advance settings of the FastSwitch pluging to be able to switch between file
+The following examples are using the advance settings of the FastSwitch pluging to be able to switch between files
 where the relation between the different directory tree is more complex.
 
 For each example the setting is minimal to expose the current feature. All the settings can be combined to achieve
@@ -105,10 +79,10 @@ With the following setting :
           [ ["hpp"], ["."] ]
         ]
 ```
-and with the following directory containing the given files:
-ls ./foo/src => tata.cpp, tata.hpp
-when in the following file: ./foo/src/tata.cpp, you should be able to switch to ./src/tata.hpp
-when in the following file: ./foo/src/tata.hpp should switch to ./src/tata.cpp
+and with the following directory containing the given files:<BR>
+ls ./foo/src => test1.cpp, test1.hpp<BR>
+when in the following file: ./foo/src/test1.cpp, you should be able to switch to ./src/test1.hpp<BR>
+when in the following file: ./foo/src/test1.hpp should switch to ./src/test1.cpp<BR>
 
 Example 2:
 With the following setting :
@@ -118,12 +92,12 @@ With the following setting :
          [ [".h"], ["include"] ]
        ]
 ```
-and with the following directories containing the given file:
-ls ./foo/src => tete.cpp
-ls ./foo/include => tete.h
-using the FastSwitch pluging :
-when in the following file: ./foo/src/tete.cpp it will switch to ./include/tete.h
-when in the following file: ./foo/include/tete.hpp it will switch to ./src/tete.cpp
+and with the following directories containing the given file:<BR>
+ls ./foo/src => test2.cpp<BR>
+ls ./foo/include => test2.h<BR>
+using the FastSwitch pluging :<BR>
+when in the following file: ./foo/src/test2.cpp it will switch to ./include/test2.h<BR>
+when in the following file: ./foo/include/test2.hpp it will switch to ./src/test2.cpp<BR>
 
 Example 3:
 With the following setting :
@@ -133,11 +107,11 @@ With the following setting :
          [ [".h"], ["include/@-1"] ]
        ]
 ```
-and with the following directories containing the given file:
-ls ./foo/src => titi.cpp
-ls ./foo/include/foo => titi.h
-when in the following file: ./foo/src/titi.cpp it will switch to ./foo/include/foo/titi.hpp
-when in the following file: ./foo/include/foo/titi.hpp it will switch to ./foo/src/titi.cpp
+and with the following directories containing the given file:<BR>
+ls ./foo/src => test3.cpp<BR>
+ls ./foo/include/foo => test3.h<BR>
+when in the following file: ./foo/src/test3.cpp it will switch to ./foo/include/foo/test3.hpp<BR>
+when in the following file: ./foo/include/foo/test3.hpp it will switch to ./foo/src/test3.cpp<BR>
 
 Example 4:
 With the following setting :
@@ -147,11 +121,11 @@ With the following setting :
          [ [".h"], ["../include/@-2/."] ]
        ]
 ```
-and with the following directories containing the given file:
-ls ./foo/src/bar => toto.cpp
-ls ./foo/include/foo/bar/ => toto.h
-when in the following file: ./foo/src/bar/toto.cpp it will switch to ./foo/include/foo/bar/toto.hpp
-when in the following file: ./foo/include/foo/bar/toto.hpp it will switch to ./foo/src/bar/toto.cpp
+and with the following directories containing the given file:<BR>
+ls ./foo/src/bar => test4.cpp<BR>
+ls ./foo/include/foo/bar/ => test4.h<BR>
+when in the following file: ./foo/src/bar/test4.cpp it will switch to ./foo/include/foo/bar/test4.hpp<BR>
+when in the following file: ./foo/include/foo/bar/test4.hpp it will switch to ./foo/src/bar/test4.cpp<BR>
 
 Example 5:
 With the following setting:
@@ -160,30 +134,30 @@ With the following setting:
                  [[".js"], ["public/js"]],
                  [["Spec.js"], ["../test"]]
                ]
-'''
-and with the following directories containing the given file:
-ls ./foo/public/js => test5.js
-ls ./foo/test => test5Spec.js
-when in the following file ./foo/public/js/test5.js it will switch to ./foo/test/test5Spec.js
-when in the following file ./foo/test/test5Spec.js it will switch to ./foo/public/js/test5.js
+```
+and with the following directories containing the given file:<BR>
+ls ./foo/public/js => test5.js<BR>
+ls ./foo/test => test5Spec.js<BR>
+when in the following file ./foo/public/js/test5.js it will switch to ./foo/test/test5Spec.js<BR>
+when in the following file ./foo/test/test5Spec.js it will switch to ./foo/public/js/test5.js<BR>
 
 Example 6:
 With the following settings:
-'''
+```
 "C++":[
         [[".py"], [".", "..", ""] ],
         [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}]
       ]
-'''
-and with the following directories containing the given file:
-ls ./Test6 => test6.cpp
-ls ./Test6/test => test_test6.cpp
-when in the following file ./Test6/test6.cpp it will switch to ./Test6/test/test_test6.cpp
-when in the following file ./Test6/test/test_test6.cpp it will switch to ./Test6/test6.cpp
+```
+and with the following directories containing the given file:<BR>
+ls ./Test6 => test6.cpp<BR>
+ls ./Test6/test => test_test6.cpp<BR>
+when in the following file ./Test6/test6.cpp it will switch to ./Test6/test/test_test6.cpp<BR>
+when in the following file ./Test6/test/test_test6.cpp it will switch to ./Test6/test6.cpp<BR>
 
 Example 7:
 With the following settings:
-'''
+```
 "Javascript": [
                 [[".controller.js"], ["."]],
                 [[".template.html"], ["."]],
@@ -194,28 +168,28 @@ With the following settings:
           [[".service.js"], ["."]],
           [[".controller.js"], ["."]],
         ]
-'''
-and with the following directory containing the given files:
-ls ./Test7 => test7_A.controller.js test7_A.service.js test7_A.template.html test7_B.controller.js test7_B.service.js
-when in the following file ./Test7/test7_A.controller.js it will switch to ./Test7/test7_A.template.html
-when in the following file ./Test7/test7_A.template.html it will switch to ./Test7/test7_A.service.js
-when in the following file ./Test7/test7_A.service.js it will switch to ./Test7/test7_A.controller.js
-when in the following file ./Test7/test7_B.controller.js it will switch to ./Test7/test7_B.service.js
-when in the following file ./Test7/test7_B.service.js it will switch to ./Test7/test7_B.controller.js
+```
+and with the following directory containing the given files:<BR>
+ls ./Test7 => test7_A.controller.js test7_A.service.js test7_A.template.html test7_B.controller.js test7_B.service.js<BR>
+when in the following file ./Test7/test7_A.controller.js it will switch to ./Test7/test7_A.template.html<BR>
+when in the following file ./Test7/test7_A.template.html it will switch to ./Test7/test7_A.service.js<BR>
+when in the following file ./Test7/test7_A.service.js it will switch to ./Test7/test7_A.controller.js<BR>
+when in the following file ./Test7/test7_B.controller.js it will switch to ./Test7/test7_B.service.js<BR>
+when in the following file ./Test7/test7_B.service.js it will switch to ./Test7/test7_B.controller.js<BR>
 
 Example 8:
 With the following settings:
-'''
+```
 "C++": [
          [[".cpp"],       ["../../src/."],       {"prefixes":[""]}],
          [[".h", ".hpp"], ["../include/@-2/@0"], {"prefixes":[""]}]
        ]
-'''
-and with the following directories containing the given file:
-ls ./Test_8/foo/src/bar => test8_A.cpp test8_B.cpp
-ls ./Test_8/foo/include/foo/bar/ => test8_A.h test8_B.hpp
-when in the following file: ./Test_8/foo/src/bar/test8.cpp it will switch to ./foo/include/foo/bar/test8.h
-when in the following file: ./Test_8/foo/include/foo/bar/test8.h it will switch to ./foo/src/bar/test8.cpp
+```
+and with the following directories containing the given file:<BR>
+ls ./Test_8/foo/src/bar => test8_A.cpp test8_B.cpp<BR>
+ls ./Test_8/foo/include/foo/bar/ => test8_A.h test8_B.hpp<BR>
+when in the following file: ./Test_8/foo/src/bar/test8.cpp it will switch to ./foo/include/foo/bar/test8.h<BR>
+when in the following file: ./Test_8/foo/include/foo/bar/test8.h it will switch to ./foo/src/bar/test8.cpp<BR>
 
 
 
@@ -224,76 +198,6 @@ when in the following file ./Test6/test/test_test6.cpp it will switch to ./Test6
 
     # ./main.template.html => ./main.controller.js
     # ./main.controller.js => ./main.template.html
-
-
-
-
-
-
-
-
-
-
-"extended": [{
-    "syntaxes": ["Python"],
-    "transitions": [{
-        "my_prefixes": ["test_", "test"],
-        "my_extensions": [".py"],
-        "wife_directories": [".", ".."],
-        "wife_prefixes": [],
-        "wife_extensions": [".py"],
-    }, {
-        "my_prefixes": [],
-        "my_extensions": [".py"],
-        "wife_directories": [".", "test", "tests"],
-        "wife_prefixes": ["test_", "test"],
-        "wife_extensions": [".py"],
-    }]
-}]
-```
-and with the following directories containing the given file:
-ls ./ => foo.py
-ls ./tests/ => test_foo.py
-when in the following file: ./foo.py it will switch to ./tests/test_foo.py
-when in the following file: ./tests/test_foo.py it will switch to ./foo.py
-
-Example 6:
-With the following setting:
-```
-"extended": [{
-    "syntaxes": ["JavaScript", "HTML"],
-    "transitions": [{
-        "my_prefixes": [],
-        "my_extensions": [".controller.js"],
-        "wife_directories": ["."],
-        "wife_prefixes": [],
-        "wife_extensions": [".template.html", ".service.js"],
-    }, {
-        "my_prefixes": [],
-        "my_extensions": [".template.html"],
-        "wife_directories": [],
-        "wife_prefixes": [],
-        "wife_extensions": [".service.js", ".controller.js"],
-    }, {
-        "my_prefixes": [],
-        "my_extensions": [".service.js"],
-        "wife_directories": [],
-        "wife_prefixes": [],
-        "wife_extensions": [".controller.js", ".template.html"],
-    }],
-
-
-```
-and with the following directories containing the given file:
-ls ./ => file.controller.js, file.template.html, file.service.js
-when in the following file: ./file.controller.js it will switch to ./file.template.html
-when in the following file: ./file.template.html it will switch to ./file.service.js
-when in the following file: ./file.service.js it will switch to ./file.controller.js
-
-and with the following directories containing the given file:
-ls ./ => file.controller.js, file.template.html
-when in the following file: ./file.controller.js it will switch to ./file.template.html
-when in the following file: ./file.template.html it will switch to ./file.controller.js
 
 
 Installation

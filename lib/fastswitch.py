@@ -665,7 +665,7 @@ class TestFastSwitch(unittest.TestCase):
                                           "test7_B.controller.js"),
                              wife)
 
-    # Test 8 (use file from Test 4)
+    # Test 8
     # ./foo/src/bar/test4.cpp => ./foo/include/foo/bar/test4.h
     # ./foo/include/foo/bar/file.h => ./foo/src/bar/test4.cpp
     # ["C++", "C"],
@@ -679,19 +679,19 @@ class TestFastSwitch(unittest.TestCase):
         wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
-                                                        "Test_4",
+                                                        "Test_8",
                                                         "foo",
                                                         "src",
                                                         "bar",
-                                                        "test4.cpp")),
+                                                        "test8_A.cpp")),
                            self.specTest8)
         self.assertPathEqual(os.path.join("TESTS_DB",
-                                          "Test_4",
+                                          "Test_8",
                                           "foo",
                                           "include",
                                           "foo",
                                           "bar",
-                                          "test4.h",
+                                          "test8_A.h",
                                           ),
                              wife)
 
@@ -700,20 +700,95 @@ class TestFastSwitch(unittest.TestCase):
         wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
-                                                        "Test_4",
+                                                        "Test_8",
                                                         "foo",
                                                         "include",
                                                         "foo",
                                                         "bar",
-                                                        "test4.h")),
+                                                        "test8_A.h")),
                            self.specTest8)
         self.assertPathEqual(os.path.join("TESTS_DB",
-                                          "Test_4",
+                                          "Test_8",
                                           "foo",
                                           "src",
                                           "bar",
-                                          "test4.cpp"),
+                                          "test8_A.cpp"),
                              wife)
+
+
+    # Test 9
+    # ./Test_9/test9.cpp => ./Test_9/test_9.h
+    # ./Test_9/test_9.h => ./Test_9/unittest/t_test9.cpp
+    # ./Test_9/unittest/t_test9.cpp => ./Test_9/test9/cpp
+    # ["C++", "C"],
+    specTest9 = [
+                  [[".cpp"], [".", ""]],
+                  [[".h"],   ["."]],
+                  [[".cpp"], ["./unittest"], {"prefixes":["t_"]}]
+                ]
+    def test9_A_3filesCppToH(self):
+        wife = fast_switch(0, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_9",
+                                                        "test9_A.cpp")),
+                           self.specTest9)
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_9",
+                                          "test9_A.h"),
+                             wife)
+
+    def test9_A_3filesHToT_cpp(self):
+        wife = fast_switch(0, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_9",
+                                                        "test9_A.h")),
+                           self.specTest9)
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_9",
+                                          "unittest",
+                                          "t_test9_A.cpp"),
+                             wife)
+
+    def test9_A_3filesT_cppToCpp(self):
+        wife = fast_switch(0, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_9",
+                                                        "unittest",
+                                                        "t_test9_A.cpp")),
+                           self.specTest9)
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_9",
+                                          "test9_A.cpp"),
+                             wife)
+
+    def test9_B_2filesCppToH(self):
+        wife = fast_switch(0, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_9",
+                                                        "test9_B.cpp")),
+                           self.specTest9)
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_9",
+                                          "test9_B.h"),
+                             wife)
+
+    def test9_B_2filesHToCpp(self):
+        wife = fast_switch(0, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_9",
+                                                        "test9_B.h")),
+                           self.specTest9)
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_9",
+                                          "test9_B.cpp"),
+                             wife)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+

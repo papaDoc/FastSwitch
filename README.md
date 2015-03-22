@@ -6,15 +6,34 @@ A Sublime Text 2/3 plugin. To switch between files
 A file of a given syntax will switch to a file with the same base name but with a different user defined extension.
 The file will be searched in a list of user define directory. The first file found respecting the criteria will be the one Sublime Text 2/3 will switch to.
 
+2015/03/21
+----------
+New features:
+  - It is now possible to switch to a file with a different prefix if a prefix is specified in the settings.<BR>
+    The prefix is stripped from the filename as for the extension and the prefix and extension
+    of the other line of the settings is added.<BR>
+    See examples 6 and 9 below.
+  - It is possible to cycle between more than 2 files, if the settings has more than 2 lines.>BR>
+    See examples 7 and 9 below
+
 Here is an example of a setting:
 ```
 // For the settings you define the syntax for which the extension and directory applies
-// "syntax_X": { ["ext_A1, ext_A2"], ["directory_A1", directory_A2] },
-//               ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]
-//             }
-// extended syntax:
+// "syntax_X": [
+//               [["ext_A1, ext_A2"], ["directory_A1", directory_A2]],
+//               [["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]]
+//             ]
 // N.B. The "syntax_X" must be the string found in the lower right corner if the SublimeText 2/3
 // Example: "Plain Text", "C++". "Python", "Markdown"
+//
+// settings with the new feature:
+// "syntax_Y": [
+//               [["ext_A1, ext_A2"], ["directory_A1", directory_A2], {"prefixes": ["prefix_A1_", "prefix_A2_"]}],
+//               [["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"], {"prefixes": ["prefix_B_"]}]
+//               [["ext_C1"], ["directory_C1", ""]]
+//             ]
+// N.B. The {"prefixes": ["prefix_A1", "prefix_A2"]} is optional and can be ommitted
+//
 //
 // With the above settings when in syntax_X (Ex C++) and you are currently in the file:
 //     .../foo/bar/directory_A1/file.ext_A1
@@ -24,6 +43,20 @@ Here is an example of a setting:
 //     foo/bar/directory_B1/file.ext_B2
 //     foo/bar/directory_B2/file.ext_B1
 //     foo/bar/directory_B2/file.ext_B2
+//
+//
+// With the above settings when in syntax_Y and you are currently in the file:
+//     .../foo/bar/directory_A1/prefix_A1_file.ext_A1
+//
+// using the fastswitch pluging then the pluging will try to open the file:
+//     foo/bar/directory_B1/prefix_B_file.ext_B1
+//     foo/bar/directory_B1/prefix_B_file.ext_B2
+//     foo/bar/directory_B1/prefix_B_file.ext_B1
+//     foo/bar/directory_B1/prefix_B_file.ext_B2
+//     foo/bar/directory_B1/prefix_B_file.ext_B2
+//     foo/bar/directory_C1/file.ext_C1
+//     foo/bar/file.ext_C1
+//
 //
 // The first existing file will be openned so the order is important.
 //
@@ -188,17 +221,25 @@ With the following settings:
 and with the following directories containing the given file:<BR>
 ls ./Test_8/foo/src/bar => test8_A.cpp test8_B.cpp<BR>
 ls ./Test_8/foo/include/foo/bar/ => test8_A.h test8_B.hpp<BR>
-when in the following file: ./Test_8/foo/src/bar/test8.cpp it will switch to ./foo/include/foo/bar/test8.h<BR>
-when in the following file: ./Test_8/foo/include/foo/bar/test8.h it will switch to ./foo/src/bar/test8.cpp<BR>
+when in the following file: ./Test_8/foo/src/bar/test8_A.cpp it will switch to ./foo/include/foo/bar/test8_A.h<BR>
+when in the following file: ./Test_8/foo/include/foo/bar/test8_A.h it will switch to ./foo/src/bar/test8_A.cpp<BR>
 
-
-
-
-when in the following file ./Test6/test/test_test6.cpp it will switch to ./Test6/test6.cpp
-
-    # ./main.template.html => ./main.controller.js
-    # ./main.controller.js => ./main.template.html
-
+Example 9:
+```
+"C++": [
+          [[".cpp"], [".", ""]],
+          [[".h"],   ["."]],
+          [[".cpp"], ["./unittest"], {"prefixes":["t_"]}]
+      ]
+```
+and with the following directories containing the given file:<BR>
+ls ./Test_9/ => test9_A.cpp test9_A.h test9_B.cpp test9_B.h<BR>
+ls ./Test_9/unittest/t_test9_A.cpp<BR>
+when in the following file: ./Test_9/test9_A.cpp it will switch to ./Test_9/test9_A.h<BR>
+when in the following file: ./Test_9/test9_A.h it will switch to ./Test_9/unittest/t_test9.cpp<BR>
+when in the following file: ./Test_9/unittest/test9_A.cpp it will switch to ./Test_9/test9_A.cpp<BR>
+when in the following file: ./Test_9/test9_B.cpp it will switch to ./foo/src/bar/test9_B.h<BR>
+when in the following file: ./Test_9/test9_B.h it will switch to ./foo/src/bar/test9_B.cpp<BR>
 
 Installation
 ------------

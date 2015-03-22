@@ -29,7 +29,7 @@ Here is an example of a setting:
 // settings with the new feature:
 // "syntax_Y": [
 //               [["ext_A1, ext_A2"], ["directory_A1", directory_A2], {"prefixes": ["prefix_A1_", "prefix_A2_"]}],
-//               [["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"], {"prefixes": ["prefix_B_"]}]
+//               [["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"], {"prefixes": ["prefix_B_"]}],
 //               [["ext_C1"], ["directory_C1", ""]]
 //             ]
 // N.B. The {"prefixes": ["prefix_A1", "prefix_A2"]} is optional and can be ommitted

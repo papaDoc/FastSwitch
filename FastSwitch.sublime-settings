@@ -1,46 +1,55 @@
 {
-	// For the settings you define the mode for which the extension and directory applies
-	// "mode_X": { ["ext_A1, ext_A2"], ["directory_A1", "directory_A2"] },
-	//             ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]
-	//           }
-	// With the above settings when in mode_X (Ex C++) and you are currently in the file:
-	//     .../foo/bar/directory_A1/file.ext_A1
-	//
-	// using the FastSwith pluging then the pluging will try to open the file:
-	//     foo/bar/directory_B1/file.ext_B1
-	//     foo/bar/directory_B1/file.ext_B2
-	//     foo/bar/directory_B2/file.ext_B1
-	//     foo/bar/directory_B2/file.ext_B2
-	// The first existing file will be openned so the order is important.
-	//
-	// extended syntax:
-	//   "extended": [{
-	//   		"syntaxes": ["mode_X", "mode_Y"],
-	//   		"transitions": [{
-	//   			"my_prefixes": [],
-	//   			"my_extensions": [".ext_A"],
-	//   			"wife_directories": ["."],
-	//   			"wife_prefixes": [],
-	//   			"wife_extensions": [".ext_B"],
-	//   		}, {
-	//   			"my_prefixes": [],
-	//   			"my_extensions": [".ext_B"],
-	//   			"wife_directories": [],
-	//   			"wife_prefixes": [],
-	//   			"wife_extensions": [".extC"],
-	//   		}, {
-	//   			"my_prefixes": [],
-	//   			"my_extensions": [".extC"],
-	//   			"wife_directories": [],
-	//   			"wife_prefixes": [],
-	//   			"wife_extensions": [".ext_A"],
-	//   		}]
-	//   	}, {
-	//
-	//   		...
-	//
-	//   }]
-
+// For the settings you define the syntax for which the extension and directory applies
+// "syntax_X": [
+//               [["ext_A1, ext_A2"], ["directory_A1", directory_A2]],
+//               [["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]]
+//             ]
+// N.B. The "syntax_X" must be the string found in the lower right corner if the SublimeText 2/3
+// Example: "Plain Text", "C++". "Python", "Markdown"
+//
+// settings with the new feature:
+// "syntax_Y": [
+//               [["ext_A1, ext_A2"], ["directory_A1", directory_A2], {"prefixes": ["prefix_A1_", "prefix_A2_"]}],
+//               [["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"], {"prefixes": ["prefix_B_"]}],
+//               [["ext_C1"], ["directory_C1", ""]]
+//             ]
+// N.B. The {"prefixes": ["prefix_A1", "prefix_A2"]} is optional and can be ommitted
+//
+//
+// With the above settings when in syntax_X (Ex C++) and you are currently in the file:
+//     .../foo/bar/directory_A1/file.ext_A1
+//
+// using the fastswitch pluging then the pluging will try to open the file:
+//     foo/bar/directory_B1/file.ext_B1
+//     foo/bar/directory_B1/file.ext_B2
+//     foo/bar/directory_B2/file.ext_B1
+//     foo/bar/directory_B2/file.ext_B2
+//
+//
+// With the above settings when in syntax_Y and you are currently in the file:
+//     .../foo/bar/directory_A1/prefix_A1_file.ext_A1
+//
+// using the fastswitch pluging then the pluging will try to open the file:
+//     foo/bar/directory_B1/prefix_B_file.ext_B1
+//     foo/bar/directory_B1/prefix_B_file.ext_B2
+//     foo/bar/directory_B1/prefix_B_file.ext_B1
+//     foo/bar/directory_B1/prefix_B_file.ext_B2
+//     foo/bar/directory_B1/prefix_B_file.ext_B2
+//     foo/bar/directory_C1/file.ext_C1
+//     foo/bar/file.ext_C1
+//
+//
+// The first existing file will be openned so the order is important.
+//
+//
+// N.B. The "." will be replaced by the current directory
+//      Ex: If you are currently in  c:\foo\src\bar\file.cpp the "include\." correspond to "include\bar"
+//      The "@d" means to replace the tag by the corresponding directory in path of the current file.
+//      d must be a negative number
+//      Ex:
+//           If you are currently in c:\foo\bar\src\file.cpp the "@-1" correspond to the directory "bar"
+//
+// For the For the different syntax, I'm using the following
 	"C++": [
 		     [ [".cpp"], [".", "src"] ],
 		     [ ["hpp"],	[".", "include"] ]
@@ -59,10 +68,10 @@
 	            [[".py"], [".", ".."]],
 	            [[".py"], [".", "./test", "./tests"], {"prefixes":["test_", "test"]}]
 	          ],
-	// As the value of the Verbosity increase more messages will be printed
+	// As the value of the Verbosity increase more messages will be printed in the Sublime console
 	// -1: Nothing logged
 	//  0: Error messages are printed
 	//  1: Can tell you why no switch occured
 	// 98: Logging when entering a function
-	"verbosity": 1
+	"verbosity": 0
 }

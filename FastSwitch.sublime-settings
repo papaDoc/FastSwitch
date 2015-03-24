@@ -1,24 +1,68 @@
 {
-    // For the settings you define the mode for which the extension and directory applies
-    // "mode_X": { ["ext_A1, ext_A2"], ["directory_A1", directory_A2] },
-    //             ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]
-    //           }
-    // With the above settings when in mode_X (Ex C++) and you are currently in the file:
-    // .../foo/bar/directory_A1/file.ext_A1
-    // using the fastswitch pluging then the pluging will try to open the file:
-    // foo/bar/directory_B1/file.ext_B1
-    // foo/bar/directory_B1/file.ext_B2
-    // foo/bar/directory_B2/file.ext_B1
-    // foo/bar/directory_B2/file.ext_B2
-    // The first existing file will be openned so the order is important.
-    "C++": [
-             [ ["cpp"], [".", "src"] ],
-             [ ["h", "hpp"], [".", "include"] ]
-           ],
-    // As the value of the Verbosity increase more messages will be printed
-    // -1: Nothing logged
-    //  0: Error messages are printed
-    //  1: Can tell you why no switch occured
-    // 98: Logging when entering a function
-    "verbosity": 0
+	// For the settings you define the mode for which the extension and directory applies
+	// "mode_X": { ["ext_A1, ext_A2"], ["directory_A1", "directory_A2"] },
+	//             ["ext_B1", "ext_B2"], ["directory_B1", "directory_B2"]
+	//           }
+	// With the above settings when in mode_X (Ex C++) and you are currently in the file:
+	//     .../foo/bar/directory_A1/file.ext_A1
+	//
+	// using the FastSwith pluging then the pluging will try to open the file:
+	//     foo/bar/directory_B1/file.ext_B1
+	//     foo/bar/directory_B1/file.ext_B2
+	//     foo/bar/directory_B2/file.ext_B1
+	//     foo/bar/directory_B2/file.ext_B2
+	// The first existing file will be openned so the order is important.
+	//
+	// extended syntax:
+	//   "extended": [{
+	//   		"syntaxes": ["mode_X", "mode_Y"],
+	//   		"transitions": [{
+	//   			"my_prefixes": [],
+	//   			"my_extensions": [".ext_A"],
+	//   			"wife_directories": ["."],
+	//   			"wife_prefixes": [],
+	//   			"wife_extensions": [".ext_B"],
+	//   		}, {
+	//   			"my_prefixes": [],
+	//   			"my_extensions": [".ext_B"],
+	//   			"wife_directories": [],
+	//   			"wife_prefixes": [],
+	//   			"wife_extensions": [".extC"],
+	//   		}, {
+	//   			"my_prefixes": [],
+	//   			"my_extensions": [".extC"],
+	//   			"wife_directories": [],
+	//   			"wife_prefixes": [],
+	//   			"wife_extensions": [".ext_A"],
+	//   		}]
+	//   	}, {
+	//
+	//   		...
+	//
+	//   }]
+
+	"C++": [
+		     [ [".cpp"], [".", "src"] ],
+		     [ ["hpp"],	[".", "include"] ]
+	       ],
+	"JavaScript": [
+	                [ [".controller.js"], ["."] ],
+	                [ [".template.html"], ["."] ],
+	                [ [".service.js"],    ["."] ]
+	              ],
+    "HTML": [
+	          [ [".controller.js"], ["."] ],
+	          [ [".template.html"], ["."] ],
+	          [ [".service.js"],    ["."] ]
+	        ],
+	"Python": [
+	            [[".py"], [".", ".."]],
+	            [[".py"], [".", "./test", "./tests"], {"prefixes":["test_", "test"]}]
+	          ],
+	// As the value of the Verbosity increase more messages will be printed
+	// -1: Nothing logged
+	//  0: Error messages are printed
+	//  1: Can tell you why no switch occured
+	// 98: Logging when entering a function
+	"verbosity": 1
 }

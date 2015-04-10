@@ -93,14 +93,16 @@ def replace_index(orig, replacements):
         cnt = cnt + 1
     return orig
 
+
 def get_prefixes(idx, settings):
     prefixes = [""]
-    if len(settings[idx]) > 2 :
+    if len(settings[idx]) > 2:
         if type(settings[idx][2]) == type(dict()):
             prefixes = settings[idx][2]['prefixes']
         else:
             prefixes = settings[idx][2]
-    log(50, "get_prefixes: Returning the prefixes: \"%s\" at index: \"%d\" in settings: \"%s\"" % (prefixes, idx, settings))
+    log(50, "get_prefixes: Returning the prefixes: \"%s\" at index: \"%d\" in settings: \"%s\"" %
+        (prefixes, idx, settings))
     return prefixes
 
 
@@ -117,6 +119,7 @@ def has_prefix(filename, prefixes):
                 return prefix
         return None
     return ""
+
 
 def has_extension(filename, extensions):
     """
@@ -144,18 +147,20 @@ def find_index(filename, settings, start_idx=0):
         ext = has_extension(filename, extensions)
         if ext is not None:
             prefixes = get_prefixes(i, settings)
-            if len(settings[i]) > 2 :
+            if len(settings[i]) > 2:
                 if type(settings[i][2]) == type(dict()):
                     prefixes = settings[i][2]['prefixes']
                 else:
                     prefixes = settings[i][2]
             prefix = has_prefix(filename, prefixes)
             if prefix is not None:
-                log(50, "find_index: The filename \"%s\" has the prefix: \"%s\" and extension: \"%s\" corresponding to index \"%s\" of settings: \"%s\"" % (filename, prefix, ext, i, settings))
+                log(50, "find_index: The filename \"%s\" has the prefix: \"%s\" and extension: "
+                    "\"%s\" corresponding to index \"%s\" of settings: \"%s\"" % (
+                        filename, prefix, ext, i, settings))
                 return [i, ext, prefix]
-    log(50,"find_index: The filename  \"%s\" does not correspond to any of the settings: \"%s\"" % (filename, settings))
+    log(50, "find_index: The filename  \"%s\" does not correspond to any of the settings: \"%s\"" %
+        (filename, settings))
     return [-1, None, None]
-
 
 
 def filter_directory(wife_dir, path):
@@ -177,7 +182,7 @@ def filter_directory(wife_dir, path):
     pattern = re.compile(r"@(-[0-9]+|0)")
     reconstructed_wife = []
     for d in exploded_wife_path:
-        log(100, "filter_directory: converting directory \"{!r}\"".format(d) )
+        log(100, "filter_directory: converting directory \"{!r}\"".format(d))
         m = pattern.match(d)
         if d == ".":
             idx = 0
@@ -185,7 +190,6 @@ def filter_directory(wife_dir, path):
             reconstructed_wife.append(parts[idx])
         elif m:
             idx = -(int(m.group(1)))
-            tat = parts[idx]
             log(100, "{!r} matches with {!r}".format(d, parts[idx]))
             reconstructed_wife.append(parts[idx])
         else:
@@ -195,7 +199,6 @@ def filter_directory(wife_dir, path):
     reconstructed_wife = os.path.sep.join(reconstructed_wife)
     log(100, "Ici 3: reconstructed_wife: %s" % reconstructed_wife)
     return reconstructed_wife
-
 
 
 def fast_switch(verbose_level, syntax, path, settings):
@@ -214,25 +217,30 @@ def fast_switch(verbose_level, syntax, path, settings):
 
     for i in range(nb_transition):
         husband_idx, husband_ext, husband_prefix = find_index(filename, settings, i)
-        log(98, "Index: \"%d\" Husband: \"%s\" has prefix \"%s\", and extension \"%s\"" % (husband_idx, filename, husband_prefix, husband_ext))
+        log(98, "Index: \"%d\" Husband: \"%s\" has prefix \"%s\", and extension \"%s\"" %
+            (husband_idx, filename, husband_prefix, husband_ext))
 
         if husband_idx != -1:
             husband_basename = filename[:-len(husband_ext)]
-            #log(50, "Index: \"%d\" Husband: \"%s\" without extension \"%s\", basename \"%s\"" % (husband_idx, filename, husband_ext, husband_basename))
+            # log(50, "Index: \"%d\" Husband: \"%s\" without extension \"%s\", basename \"%s\""
+            #    % (husband_idx, filename, husband_ext, husband_basename))
             husband_basename = husband_basename[len(husband_prefix):]
-            #log(50, "Index: \"%d\" Husband: \"%s\" without prefix \"%s\", basename \"%s\"" % (husband_idx, filename, husband_prefix, husband_basename))
+            # log(50, "Index: \"%d\" Husband: \"%s\" without prefix \"%s\", basename \"%s\"" %
+            # (husband_idx, filename, husband_prefix, husband_basename))
 
-            log(50, "Index: \"%d\" Husband: \"%s\" has prefix \"%s\", basename: \"%s\" and extension \"%s\"" % (husband_idx, filename, husband_prefix, husband_basename, husband_ext))
+            log(50, "Index: \"%d\" Husband: \"%s\" has prefix \"%s\", basename: \"%s\" and extension \"%s\"" %
+                (husband_idx, filename, husband_prefix, husband_basename, husband_ext))
 
-            for wife_idx in range(husband_idx+1, nb_transition+husband_idx):
+            for wife_idx in range(husband_idx + 1, nb_transition + husband_idx):
                 wife_idx = (wife_idx) % nb_transition
-                log(100,"husband_idx: %d   nb_transition: %d  wife_idx: (husband_idx+1) mod nb_transition = %d" % (husband_idx, nb_transition, wife_idx))
+                log(100, "husband_idx: %d   nb_transition: %d  wife_idx: (husband_idx+1) mod nb_transition = %d" %
+                    (husband_idx, nb_transition, wife_idx))
                 wife_extensions = settings[wife_idx][0]
                 wife_directories = settings[wife_idx][1]
                 wife_prefixes = get_prefixes(wife_idx, settings)
 
-                log(50, "Index: \"%d\" Wife: extensions: {%s} directories: {%s}  prefixes: {%s}" % (wife_idx, wife_extensions, wife_directories, wife_prefixes))
-
+                log(50, "Index: \"%d\" Wife: extensions: {%s} directories: {%s}  prefixes: {%s}" % (
+                    wife_idx, wife_extensions, wife_directories, wife_prefixes))
 
                 # Split the base since the current directory might be needed
                 # and because every is with respect to the base - last_dir
@@ -241,7 +249,7 @@ def fast_switch(verbose_level, syntax, path, settings):
 
                 log(INFO, "Looking for file \"%s\" with one of the following extensions %s in one "
                           "of the sub directories %s with one of the prefixes %s in the path \"%s\"" % (
-                          husband_basename, wife_extensions, wife_directories, wife_prefixes, splitted_base))
+                              husband_basename, wife_extensions, wife_directories, wife_prefixes, splitted_base))
                 for wife_dir in wife_directories:
                     wife_dir = filter_directory(wife_dir, base)
                     path = os.path.join(splitted_base, wife_dir)
@@ -251,11 +259,12 @@ def fast_switch(verbose_level, syntax, path, settings):
                             wife_extensions.append('.' + wife_ext)
                         #wife_ext = ('.' + wife_ext if wife_ext[0] != '.' else wife_ext)
                         for wife_prefix in wife_prefixes:
-                            log(50, "Investigating for file \"%s\" in directory \"%s\" with extension \"%s\" and prefix \"%s\"" %
+                            log(50, "Investigating for file \"%s\" in directory \"%s\" "
+                                "with extension \"%s\" and prefix \"%s\"" %
                                     (husband_basename, path, wife_ext, wife_prefix))
                             wife = os.path.join(path, wife_prefix + husband_basename + wife_ext)
                             wife = os.path.abspath(wife)
-                            log(50, "Absolute path: wife: \"%s\"" % (wife) )
+                            log(50, "Absolute path: wife: \"%s\"" % (wife))
                             log(INFO, "Looking for wife file: %s" % wife)
                             if os.path.isfile(wife):
                                 log(INFO, "Found a wife file: %s" % wife)
@@ -263,7 +272,7 @@ def fast_switch(verbose_level, syntax, path, settings):
                             log(INFO, "The wife file: %s was not found" % wife)
 
         log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
-                 (filename, settings[0][0], settings[1][0], syntax))
+            (filename, settings[0][0], settings[1][0], syntax))
 
 
 class TestFastSwitch(unittest.TestCase):
@@ -307,8 +316,6 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest1)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.cpp"), wife)
 
-
-
     # Test 1 husband_extended
     #  "C++": [
     #             [ [".cpp"], ["."] [""]],
@@ -340,7 +347,6 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest1)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.cpp"), wife)
 
-
     # Test 1 husband_extended_dict
     #  "C++": [
     #             [ [".cpp"], ["."], [{"prefixes":[""]}]],
@@ -350,7 +356,7 @@ class TestFastSwitch(unittest.TestCase):
     # ./foo/src/test1.cpp should switch to ./src/test1.hpp
     # ./foo/src/test1.hpp should switch to ./src/test1.cpp
     specTest1 = [
-        [[".cpp"], ["."], {"prefixes":[""]} ],
+        [[".cpp"], ["."], {"prefixes": [""]}],
         [[".hpp"], ["."]]
     ]
 
@@ -364,15 +370,13 @@ class TestFastSwitch(unittest.TestCase):
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.hpp"), wife)
 
     #@unittest.skip("development ongoing")
-    def test1_husband_extended_2(self):
+    def test1_husband_extended_dict_2(self):
         wife = fast_switch(0, "C++", os.path.join(self.test_db,
                                                   "Test_1",
                                                   "src",
                                                   "test1.hpp"),
                            self.specTest1)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.cpp"), wife)
-
-
 
     # Test 2
     #  "C++": [
@@ -435,6 +439,7 @@ class TestFastSwitch(unittest.TestCase):
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_3", "foo", "include", "foo", "test3.h"),
                              wife)
     #@unittest.skip("development ongoing")
+
     def test3_HdrInPackageDir2(self):
         wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -532,9 +537,9 @@ class TestFastSwitch(unittest.TestCase):
     # ./Test_6/test/test_test6.cpp should switch to ./Test_6/test6.py
     # ./Test_6/test6.py should switch to ./foo/test/test_test6.py
     specTest6 = [
-                  [[".py"], [".", "..", ""] ],
-                  [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}]
-                ]
+        [[".py"], [".", "..", ""]],
+        [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}]
+    ]
 
     #@unittest.skip("development ongoing")
     def test6_ExtendedSyntax_WithPrefixForTest1(self):
@@ -555,10 +560,9 @@ class TestFastSwitch(unittest.TestCase):
                                                         "Test_6",
                                                         "test",
                                                         "test_test6.py")),
-                            self.specTest6)
+                           self.specTest6)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "test6.py"),
                              wife)
-
 
     # Test 6 Inverted
     # ./foo/test/test_file.py should switch to ./foo/test6.py
@@ -566,9 +570,9 @@ class TestFastSwitch(unittest.TestCase):
     # Inverse the order in the settings of test 6
 
     specTest6 = [
-                  [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}],
-                  [[".py"], [".", ""] ]
-                ]
+        [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}],
+        [[".py"], [".", ""]]
+    ]
 
     #@unittest.skip("development ongoing")
     def test6_CppWithTestDir_settingInverted1(self):
@@ -593,16 +597,15 @@ class TestFastSwitch(unittest.TestCase):
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "test6.py"),
                              wife)
 
-
     # Test 7
     # ls ./ => main.template.html, main.controller.js
     # ./test7_A.template.html => ./test7_A.controller.js
     # ./test7_A.controller.js => ./test7_A.template.html
     specTest7 = [
-                  [[".controller.js"], ["."]],
-                  [['.template.html'], ["."]],
-                  [['.service.js'], ["."]]
-                ]
+        [[".controller.js"], ["."]],
+        [['.template.html'], ["."]],
+        [['.service.js'], ["."]]
+    ]
 
     #@unittest.skip("development ongoing")
     def test7_ExtendedSyntax_WithPrefixForTest1(self):
@@ -641,7 +644,6 @@ class TestFastSwitch(unittest.TestCase):
                                           "test7_A.controller.js"),
                              wife)
 
-
     def test7_B_ExtendedSyntax_WithPrefixForTest1(self):
         wife = fast_switch(0, "js",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -670,9 +672,9 @@ class TestFastSwitch(unittest.TestCase):
     # ./foo/include/foo/bar/file.h => ./foo/src/bar/test4.cpp
     # ["C++", "C"],
     specTest8 = [
-                  [[".cpp"], ["../../src/."],       {"prefixes":[""]}],
-                  [[".h"],   ["../include/@-2/@0"], {"prefixes":[""]}]
-                ]
+        [[".cpp"], ["../../src/."],       {"prefixes": [""]}],
+        [[".h"],   ["../include/@-2/@0"], {"prefixes": [""]}]
+    ]
 
     #@unittest.skip("development ongoing")
     def test8_ExtendedSyntax_SrcHdrInComplexPackageDir1(self):
@@ -715,17 +717,17 @@ class TestFastSwitch(unittest.TestCase):
                                           "test8_A.cpp"),
                              wife)
 
-
     # Test 9
     # ./Test_9/test9.cpp => ./Test_9/test_9.h
     # ./Test_9/test_9.h => ./Test_9/unittest/t_test9.cpp
     # ./Test_9/unittest/t_test9.cpp => ./Test_9/test9/cpp
     # ["C++", "C"],
     specTest9 = [
-                  [[".cpp"], [".", ""]],
-                  [[".h"],   ["."]],
-                  [[".cpp"], ["./unittest"], {"prefixes":["t_"]}]
-                ]
+        [[".cpp"], [".", ""]],
+        [[".h"],   ["."]],
+        [[".cpp"], ["./unittest"], {"prefixes": ["t_"]}]
+    ]
+
     def test9_A_3filesCppToH(self):
         wife = fast_switch(0, "C++",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -791,4 +793,3 @@ class TestFastSwitch(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-

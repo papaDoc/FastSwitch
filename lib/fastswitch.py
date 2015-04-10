@@ -338,7 +338,7 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest1)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_1", "src", "test1.hpp"), wife)
 
-    @unittest.skip("development ongoing")
+    # @unittest.skip("development ongoing")
     def test1_husband_extended_2(self):
         wife = fast_switch(0, "C++", os.path.join(self.test_db,
                                                   "Test_1",
@@ -538,12 +538,12 @@ class TestFastSwitch(unittest.TestCase):
     # ./Test_6/test6.py should switch to ./foo/test/test_test6.py
     specTest6 = [
         [[".py"], [".", "..", ""]],
-        [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}]
+        [[".py"], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}]
     ]
 
     #@unittest.skip("development ongoing")
     def test6_ExtendedSyntax_WithPrefixForTest1(self):
-        wife = fast_switch(0, "C++",
+        wife = fast_switch(0, "Python",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
                                                         "Test_6",
@@ -554,7 +554,7 @@ class TestFastSwitch(unittest.TestCase):
 
     #@unittest.skip("development ongoing")
     def test6_ExtendedSyntax_WithPrefixForTest2(self):
-        wife = fast_switch(0, "C++",
+        wife = fast_switch(0, "Python",
                            os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                         "tests_db",
                                                         "Test_6",

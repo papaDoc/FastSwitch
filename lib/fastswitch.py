@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os.path
 import re
+import platform
 import sys
 import unittest
 
@@ -27,7 +28,7 @@ def lreplace(string, pattern, sub):
 def log(verbosity, msg, *args):
     if current_verbosity >= verbosity:
         global version
-        print("FastSwitch[{}]: {}".format(verbosity, msg), *args)
+        print("FastSwitch[{0:3d}]: {1}".format(verbosity, msg), *args)
 
 
 def with_index(seq):
@@ -57,11 +58,11 @@ def replace_current_directory(orig, replacement):
 
 def replace_index(orig, replacements):
     '''
-      Replacement a index indicator by the correcponding value in the replacement list
+      Replacement an index indicator by the corresponding value in the replacement list
       Ex: orig= "@-1", replacements = ["aa", "bb", "cc"] => "cc"
           orig="@-2/include", replacements = ["aa", "bb", "cc"] => "bb/include"
 
-      @param orig         The original string that which might containe an index indicator.
+      @param orig         The original string that which might contain an index indicator.
                           An index indicator the the symbol "@" followed by a negative number
       @param replacements A list of string used for the replacement
 
@@ -172,12 +173,12 @@ def filter_directory(wife_dir, path):
     else:
         wife_dir = wife_dir.replace("\\", os.path.sep)
 
-    log(100, "Magic filter for wife {!r}, from path {!r}".format(wife_dir, path))
+    log(100, "filter_directory: Magic filter for wife {!r}, from path {!r}".format(wife_dir, path))
     parts = path.split(os.path.sep)
     parts.reverse()
 
     exploded_wife_path = wife_dir.split(os.path.sep)
-    log(100, "  exploded_wife_path", exploded_wife_path)
+    log(100, "filter_directory: exploded_wife_path", exploded_wife_path)
     pattern = re.compile(r"@(-[0-9]+|0)")
     reconstructed_wife = []
     for d in exploded_wife_path:
@@ -185,19 +186,79 @@ def filter_directory(wife_dir, path):
         m = pattern.match(d)
         if d == ".":
             idx = 0
-            log(100, "{!r} matches {}, which is {!r}".format(d, idx, parts[idx]))
+            log(100, "filter_directory: {!r} matches {}, which is {!r}".format(d, idx, parts[idx]))
             reconstructed_wife.append(parts[idx])
         elif m:
             idx = -(int(m.group(1)))
-            log(100, "{!r} matches with {!r}".format(d, parts[idx]))
+            log(100, "filter_directory: {!r} matches with {!r}".format(d, parts[idx]))
             reconstructed_wife.append(parts[idx])
+            log(100, "filter_directory: converted to %s" % (parts[idx]))
+        elif wife_dir == "..":
+            log(100, 'filter_directory: converted to "Empty string"')
+            reconstructed_wife.append("")
         else:
             reconstructed_wife.append(d)
+            log(100, "filter_directory: converted to %s" % (d))
     # cannot use os.path.join since it will not handle the first element "" correctly
     # ("/a/b" is splitted into ["", "a", "b"])
     reconstructed_wife = os.path.sep.join(reconstructed_wife)
-    log(100, "Ici 3: reconstructed_wife: %s" % reconstructed_wife)
+    log(100, "filter_directory: reconstructed_wife: %s" % reconstructed_wife)
     return reconstructed_wife
+
+
+
+def compare_file_names(x, y):
+    log(98, "compare_file_names: x: %s   y: %s" % (x, y))
+    if platform.system() == 'Windows' or platform.system() == 'Darwin':
+        return x.lower() == y.lower()
+    else:
+        return x == y
+
+def find_in_current_dir(basename, extensions):
+    for ext in extensions:
+        new_path = basename + '.' + ext
+
+        if os.path.exists(new_path):
+            return new_path
+
+    return None
+
+def find_in_special_dirs(husband_path, husband, extensions, wife_dirs):
+    log(98, "find_in_special_dirs: husband_path: %s husband: %s  Extensions: %s   Dirs: %s" % (husband_path, husband, extensions, wife_dirs))
+
+    dirname = True
+
+    root = husband_path
+
+    filtered_wife_dirs = []
+    for wife_dir in wife_dirs:
+        filtered_dir = filter_directory(wife_dir, husband_path)
+        if filtered_dir :
+            filtered_wife_dirs.append(filtered_dir)
+
+
+    while dirname:
+        root, dirname = os.path.split(root)
+        log(98, "find_in_special_dirs: root: %s  dirname: %s" % (root, dirname))
+
+        if dirname in filtered_wife_dirs:
+            index = filtered_wife_dirs.index(dirname)
+            wife_dirs = filtered_wife_dirs[index + 1:] + filtered_wife_dirs[:index]
+
+        for wife_dir in wife_dirs:
+            log(98, "find_in_special_dirs: wife_dir: %s" % (wife_dir))
+            wife_dir = filter_directory(wife_dir, husband_path)
+            log(98, "find_in_special_dirs: filtered wife_dir: %s" % (wife_dir))
+            log(98, "find_in_special_dirs: checking if: dirname: %s is in wife_dir %s" % (dirname, wife_dir))
+            for wroot, dirs, files in os.walk(os.path.join(root, wife_dir), topdown=False):
+                log(98, "find_in_special_dirs: wroot: %s dirs: %s" % (wroot, dirs))
+                for wife_ext in extensions:
+                    log(98, "find_in_special_dirs: ext %s" % (wife_ext))
+                    found = [x for x in files if compare_file_names(x, husband + wife_ext)]
+                    if found:
+                        return os.path.join(wroot, found[0])
+
+    return None
 
 
 def fast_switch(verbose_level, syntax, path, settings):
@@ -232,13 +293,13 @@ def fast_switch(verbose_level, syntax, path, settings):
 
             for wife_idx in range(husband_idx + 1, nb_transition + husband_idx):
                 wife_idx = (wife_idx) % nb_transition
-                log(100, "husband_idx: %d   nb_transition: %d  wife_idx: (husband_idx+1) mod nb_transition = %d" %
+                log(100, "Husband index: %d   nb_transition: %d  wife_idx: (husband_idx+1) mod nb_transition = %d" %
                     (husband_idx, nb_transition, wife_idx))
                 wife_extensions = settings[wife_idx][0]
                 wife_directories = settings[wife_idx][1]
                 wife_prefixes = get_prefixes(wife_idx, settings)
 
-                log(50, "Index: \"%d\" Wife: extensions: {%s} directories: {%s}  prefixes: {%s}" % (
+                log(50, "Wife Index: \"%d\" Wife: extensions: {%s} directories: {%s}  prefixes: {%s}" % (
                     wife_idx, wife_extensions, wife_directories, wife_prefixes))
 
                 # Split the base since the current directory might be needed
@@ -251,8 +312,8 @@ def fast_switch(verbose_level, syntax, path, settings):
                               husband_basename, wife_extensions, wife_directories, wife_prefixes, splitted_base))
                 for wife_dir in wife_directories:
                     wife_dir = filter_directory(wife_dir, base)
-                    path = os.path.join(splitted_base, wife_dir)
-                    log(50, "The investigation of wife directory with everything replaced: \"%s\"" % path)
+                    wife_path = os.path.join(splitted_base, wife_dir)
+                    log(50, "The investigation of wife directory with everything replaced: \"%s\"" % wife_path)
                     for wife_ext in wife_extensions:
                         if wife_ext[0] != '.':
                             wife_extensions.append('.' + wife_ext)
@@ -260,8 +321,8 @@ def fast_switch(verbose_level, syntax, path, settings):
                         for wife_prefix in wife_prefixes:
                             log(50, "Investigating for file \"%s\" in directory \"%s\" "
                                 "with extension \"%s\" and prefix \"%s\"" %
-                                    (husband_basename, path, wife_ext, wife_prefix))
-                            wife = os.path.join(path, wife_prefix + husband_basename + wife_ext)
+                                    (husband_basename, wife_path, wife_ext, wife_prefix))
+                            wife = os.path.join(wife_path, wife_prefix + husband_basename + wife_ext)
                             wife = os.path.abspath(wife)
                             log(50, "Absolute path: wife: \"%s\"" % (wife))
                             log(INFO, "Looking for wife file: %s" % wife)
@@ -270,8 +331,15 @@ def fast_switch(verbose_level, syntax, path, settings):
                                 return wife
                             log(INFO, "The wife file: %s was not found" % wife)
 
+                wife = find_in_special_dirs(base, husband_basename, wife_extensions, wife_directories)
+                if wife:
+                    return wife
+
+    if not wife :
         log(INFO, "The file [%s] has no extension found in the list %s, %s for the syntax [%s]." %
             (filename, settings[0][0], settings[1][0], syntax))
+
+        return wife
 
 
 class TestFastSwitch(unittest.TestCase):
@@ -296,7 +364,6 @@ class TestFastSwitch(unittest.TestCase):
         [[".cpp"], ["."]],
         [[".hpp"], ["."]]
     ]
-
     #@unittest.skip("development ongoing")
     def test1_SrcHdrInSameDir1(self):
         wife = fast_switch(0, "C++", os.path.join(self.test_db,
@@ -531,7 +598,6 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest5)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_5", "foo", "public", "js", "test5.js"),
                              wife)
-
     # Test 6
     # ./Test_6/test/test_test6.cpp should switch to ./Test_6/test6.py
     # ./Test_6/test6.py should switch to ./foo/test/test_test6.py
@@ -562,17 +628,14 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest6)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "test6.py"),
                              wife)
-
     # Test 6 Inverted
     # ./foo/test/test_file.py should switch to ./foo/test6.py
     # ./foo/file.py should switch to ./foo/test/test_test6.py
     # Inverse the order in the settings of test 6
-
     specTest6 = [
         [['.py'], [".", "./test", "./tests"], {"prefixes": ["test_", "test"]}],
-        [[".py"], [".", ""]]
+        [[".py"], [".", ".."]]
     ]
-
     #@unittest.skip("development ongoing")
     def test6_CppWithTestDir_settingInverted1(self):
         wife = fast_switch(0, "C++",
@@ -583,7 +646,6 @@ class TestFastSwitch(unittest.TestCase):
                            self.specTest6)
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_6",  "test", "test_test6.py"),
                              wife)
-
     #@unittest.skip("development ongoing")
     def test6_CppWithTestDir_settingsInverted2(self):
         wife = fast_switch(0, "C++",
@@ -593,6 +655,7 @@ class TestFastSwitch(unittest.TestCase):
                                                         "test",
                                                         "test_test6.py")),
                            self.specTest6)
+
         self.assertPathEqual(os.path.join("TESTS_DB", "Test_6", "test6.py"),
                              wife)
 
@@ -788,6 +851,32 @@ class TestFastSwitch(unittest.TestCase):
                                           "Test_9",
                                           "test9_B.cpp"),
                              wife)
+
+    # Test 10
+    # Should fall to the second method
+    # ./Test_10/src/test9.cpp => ./Test_10/include/Tata/test_10.h
+    # ["C++", "C"],
+    specTest10 = [
+        [[".cpp"], [".", "src"]],
+        [[".h"],   [".", "include"]],
+    ]
+
+    def test10_A_FallToSecondMethod(self):
+        wife = fast_switch(0, "C++",
+                           os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                        "tests_db",
+                                                        "Test_10",
+                                                        "src",
+                                                        "test10.cpp")),
+                           self.specTest10)
+        self.assertIsNotNone(wife)
+        self.assertPathEqual(os.path.join("TESTS_DB",
+                                          "Test_10",
+                                          "include",
+                                          "Tata",
+                                          "test10.h"),
+                             wife)
+
 
 
 if __name__ == '__main__':

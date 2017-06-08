@@ -4,7 +4,17 @@ FastSwitch
 A Sublime Text 2/3 plugin. To switch between files
 
 A file of a given syntax will switch to a file with the same base name but with a different user defined extension.
-The file will be searched in a list of user define directory. The first file found respecting the criteria will be the one Sublime Text 2/3 will switch to.
+The file will be searched in a list of user defined directory. The first file found respecting the criteria will be the one Sublime Text 2/3 will switch to.
+
+If the file is not found with this fast switch algorithm then the path is walked. If a walked path contains the substring of the user define directory it will
+be searched for the file to switch to.
+
+2017/06/08
+----------
+New features:
+   - If the file is not found in the provided path, a new algorithm will be used based on the work of gmatte11/sublime-text-switch-file on github
+     to walk through the path and search for a path containing as a substring the user defined directory.
+     This is slower but will be able to find more with out giving too many paths.
 
 2015/03/21
 ----------
